@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from app import app
 
-# Export the Flask app for Vercel
-def handler(request):
-    return app(request.environ, lambda status, headers: None)
+# This is required for Vercel deployment
+# Export the Flask app as the default handler
+if __name__ == "__main__":
+    app.run()
