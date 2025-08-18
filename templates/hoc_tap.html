@@ -1,0 +1,1827 @@
+{% extends "base.html" %}
+
+{% block tieu_de %}Quản Lý Học Tập{% endblock %}
+
+{% block extra_css %}
+<style>
+/* CSS responsive cho bảng học tập */
+.table-container {
+    width: 100%;
+    overflow: hidden;
+    max-width: 100%;
+    position: relative;
+}
+
+.table {
+    width: 100% !important;
+    table-layout: fixed;
+    margin-bottom: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.table th,
+.table td {
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0;
+}
+
+@media (max-width: 768px) {
+    .table th,
+    .table td {
+        padding: 0.25rem 0.1rem !important;
+        font-size: 0.65rem !important;
+        line-height: 1.1;
+    }
+    
+    /* Bảng lịch học - 8 cột (Giờ + 7 ngày) */
+    .table th:nth-child(1), .table td:nth-child(1) { width: 12% !important; max-width: 12% !important; } /* Giờ */
+    .table th:nth-child(2), .table td:nth-child(2) { width: 12.5% !important; max-width: 12.5% !important; } /* T2 */
+    .table th:nth-child(3), .table td:nth-child(3) { width: 12.5% !important; max-width: 12.5% !important; } /* T3 */
+    .table th:nth-child(4), .table td:nth-child(4) { width: 12.5% !important; max-width: 12.5% !important; } /* T4 */
+    .table th:nth-child(5), .table td:nth-child(5) { width: 12.5% !important; max-width: 12.5% !important; } /* T5 */
+    .table th:nth-child(6), .table td:nth-child(6) { width: 12.5% !important; max-width: 12.5% !important; } /* T6 */
+    .table th:nth-child(7), .table td:nth-child(7) { width: 12.5% !important; max-width: 12.5% !important; } /* T7 */
+    .table th:nth-child(8), .table td:nth-child(8) { width: 12.5% !important; max-width: 12.5% !important; } /* CN */
+    
+    .card {
+        max-width: calc(100vw - 1rem) !important;
+        overflow-x: hidden !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .table th,
+    .table td {
+        padding: 0.2rem 0.05rem !important;
+        font-size: 0.6rem !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block noi_dung %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 text-primary">
+                <i class="fas fa-graduation-cap me-2"></i>
+                <span>Quản Lý Học Tập</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="hoc-tap-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#mon-hoc" type="button">
+                <i class="fas fa-book me-1"></i><span>Môn Học</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#lich-hoc" type="button">
+                <i class="fas fa-calendar me-1"></i>Lịch Học
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#bai-tap" type="button">
+                <i class="fas fa-tasks me-1"></i>Bài Tập
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="hoc-tap-content">
+        <!-- Môn học -->
+        <div class="tab-pane fade show active" id="mon-hoc" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Danh Sách Môn Học</h5>
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-them-mon-hoc">
+                    <i class="fas fa-plus me-1"></i>Thêm Môn Học
+                </button>
+            </div>
+            
+            <div class="row" id="danh-sach-mon-hoc">
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lịch học -->
+        <div class="tab-pane fade" id="lich-hoc" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Thời Khóa Biểu</h5>
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-them-lich-hoc">
+                    <i class="fas fa-plus me-1"></i>Thêm Lịch Học
+                </button>
+            </div>
+            
+            <div class="table-container">
+                <table class="table table-bordered">
+                    <thead class="table-success">
+                        <tr>
+                            <th style="width: 100px;">Giờ</th>
+                            <th>Thứ 2</th>
+                            <th>Thứ 3</th>
+                            <th>Thứ 4</th>
+                            <th>Thứ 5</th>
+                            <th>Thứ 6</th>
+                            <th>Thứ 7</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bang-lich-hoc">
+                        <!-- Sẽ được tạo bằng JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bài tập -->
+        <div class="tab-pane fade" id="bai-tap" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Danh Sách Bài Tập</h5>
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-them-bai-tap">
+                    <i class="fas fa-plus me-1"></i>Thêm Bài Tập
+                </button>
+            </div>
+
+            <!-- Bộ lọc bài tập -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <!-- Thống kê nhanh -->
+                    <div class="row mb-3" id="thong-ke-bai-tap">
+                        <div class="col-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Tổng</h6>
+                                <span class="badge bg-primary fs-6" id="tong-bai-tap">0</span>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Chưa làm</h6>
+                                <span class="badge bg-secondary fs-6" id="chua-lam-count">0</span>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Đang làm</h6>
+                                <span class="badge bg-warning fs-6" id="dang-lam-count">0</span>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="text-center">
+                                <h6 class="text-muted mb-1">Hoàn thành</h6>
+                                <span class="badge bg-success fs-6" id="hoan-thanh-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Trạng thái</label>
+                            <select class="form-select form-select-sm" id="loc-trang-thai" onchange="ap_dung_bo_loc_bai_tap()">
+                                <option value="">Tất cả</option>
+                                <option value="chua-lam">Chưa làm</option>
+                                <option value="dang-lam">Đang làm</option>
+                                <option value="hoan-thanh">Hoàn thành</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Mức độ ưu tiên</label>
+                            <select class="form-select form-select-sm" id="loc-uu-tien" onchange="ap_dung_bo_loc_bai_tap()">
+                                <option value="">Tất cả</option>
+                                <option value="cao">Cao</option>
+                                <option value="trung-binh">Trung bình</option>
+                                <option value="thap">Thấp</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Môn học</label>
+                            <select class="form-select form-select-sm" id="loc-mon-hoc" onchange="ap_dung_bo_loc_bai_tap()">
+                                <option value="">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Hạn nộp</label>
+                            <select class="form-select form-select-sm" id="loc-han-nop" onchange="ap_dung_bo_loc_bai_tap()">
+                                <option value="">Tất cả</option>
+                                <option value="qua-han">Quá hạn</option>
+                                <option value="hom-nay">Hôm nay</option>
+                                <option value="tuan-nay">Tuần này</option>
+                                <option value="thang-nay">Tháng này</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="xoa_bo_loc_bai_tap()">
+                                <i class="fas fa-times me-1"></i>Xóa bộ lọc
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row" id="danh-sach-bai-tap">
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm môn học -->
+<div class="modal fade" id="modal-them-mon-hoc" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-book me-2"></i>Thêm Môn Học
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-them-mon-hoc">
+                    <div class="mb-3">
+                        <label class="form-label">Tên môn học <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ten-mon-hoc" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mã môn học</label>
+                        <input type="text" class="form-control" id="ma-mon-hoc">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số tín chỉ</label>
+                        <input type="number" class="form-control" id="so-tin-chi" min="1" max="10">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giảng viên</label>
+                        <input type="text" class="form-control" id="giang-vien">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="them_mon_hoc()">
+                    <i class="fas fa-save me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal sửa môn học -->
+<div class="modal fade" id="modal-sua-mon-hoc" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Sửa Môn Học
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-sua-mon-hoc">
+                    <input type="hidden" id="sua-mon-hoc-id">
+                    <div class="mb-3">
+                        <label class="form-label">Tên môn học <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="sua-ten-mon-hoc" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mã môn học</label>
+                        <input type="text" class="form-control" id="sua-ma-mon-hoc">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số tín chỉ</label>
+                        <input type="number" class="form-control" id="sua-so-tin-chi" min="1" max="10">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giảng viên</label>
+                        <input type="text" class="form-control" id="sua-giang-vien">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="cap_nhat_mon_hoc()">
+                    <i class="fas fa-save me-1"></i>Cập nhật
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm bài tập -->
+<div class="modal fade" id="modal-them-bai-tap" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-tasks me-2"></i>Thêm Bài Tập
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-them-bai-tap">
+                    <div class="mb-3">
+                        <label class="form-label">Tiêu đề bài tập <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="tieu-de-bai-tap" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Môn học</label>
+                        <select class="form-control" id="mon-hoc-bai-tap">
+                            <option value="">Chọn môn học</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Hạn nộp <span class="text-danger">*</span></label>
+                        <input type="datetime-local" class="form-control" id="han-nop" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mức độ ưu tiên</label>
+                        <select class="form-control" id="muc-do-uu-tien">
+                            <option value="thap">Thấp</option>
+                            <option value="trung-binh" selected>Trung bình</option>
+                            <option value="cao">Cao</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="mo-ta-bai-tap" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="them_bai_tap()">
+                    <i class="fas fa-save me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal sửa bài tập -->
+<div class="modal fade" id="modal-sua-bai-tap" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Sửa Bài Tập
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-sua-bai-tap">
+                    <input type="hidden" id="sua-bai-tap-id">
+                    <div class="mb-3">
+                        <label class="form-label">Tiêu đề bài tập <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="sua-tieu-de-bai-tap" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Môn học</label>
+                        <select class="form-control" id="sua-mon-hoc-bai-tap">
+                            <option value="">Chọn môn học</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Hạn nộp <span class="text-danger">*</span></label>
+                        <input type="datetime-local" class="form-control" id="sua-han-nop" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mức độ ưu tiên</label>
+                        <select class="form-control" id="sua-muc-do-uu-tien">
+                            <option value="thap">Thấp</option>
+                            <option value="trung-binh">Trung bình</option>
+                            <option value="cao">Cao</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-control" id="sua-trang-thai">
+                            <option value="chua-lam">Chưa làm</option>
+                            <option value="dang-lam">Đang làm</option>
+                            <option value="hoan-thanh">Hoàn thành</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="sua-mo-ta-bai-tap" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="cap_nhat_bai_tap()">
+                    <i class="fas fa-save me-1"></i>Cập nhật
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm lịch học -->
+<div class="modal fade" id="modal-them-lich-hoc" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-plus me-2"></i>Thêm Lịch Học
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-them-lich-hoc">
+                    <div class="mb-3">
+                        <label class="form-label">Môn học <span class="text-danger">*</span></label>
+                        <select class="form-control" id="them-mon-hoc-lich" required>
+                            <option value="">Chọn môn học</option>
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Thứ <span class="text-danger">*</span></label>
+                            <select class="form-control" id="them-thu-lich" required>
+                                <option value="">Chọn thứ</option>
+                                <option value="2">Thứ Hai</option>
+                                <option value="3">Thứ Ba</option>
+                                <option value="4">Thứ Tư</option>
+                                <option value="5">Thứ Năm</option>
+                                <option value="6">Thứ Sáu</option>
+                                <option value="7">Thứ Bảy</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tiết học <span class="text-danger">*</span></label>
+                            <select class="form-control" id="them-tiet-lich" required>
+                                <option value="">Chọn tiết</option>
+                                <option value="1">Tiết 1 (09:10-10:40)</option>
+                                <option value="2">Tiết 2 (10:50-12:20)</option>
+                                <option value="3">Tiết 3 (13:10-14:40)</option>
+                                <option value="4">Tiết 4 (14:50-16:20)</option>
+                                <option value="5">Tiết 5 (16:30-18:00)</option>
+                                <option value="6">Tiết 6 (18:10-19:40)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phòng học</label>
+                        <input type="text" class="form-control" id="them-phong-hoc-lich" placeholder="VD: A101, B203...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-control" id="them-ghi-chu-lich" rows="2" placeholder="Ghi chú thêm..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="them_lich_hoc_thang()">
+                    <i class="fas fa-save me-1"></i>Thêm Lịch Học
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    // Biến toàn cục để lưu slot đang chọn
+    let slot_dang_chon = null;
+    let danh_sach_mon_hoc_global = [];
+
+    /**
+     * Tự động kích hoạt tab đầu tiên
+     */
+    function auto_activate_first_tab() {
+        const first_tab = document.querySelector('#hoc-tap-tabs .nav-link:first-child');
+        const first_tab_pane = document.querySelector('#hoc-tap-content .tab-pane:first-child');
+        
+        if (first_tab && first_tab_pane) {
+            // Đảm bảo tab đầu tiên active
+            document.querySelectorAll('#hoc-tap-tabs .nav-link').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('#hoc-tap-content .tab-pane').forEach(pane => {
+                pane.classList.remove('active', 'show');
+            });
+            
+            // Kích hoạt tab đầu tiên
+            first_tab.classList.add('active');
+            first_tab_pane.classList.add('active', 'show');
+            
+            console.log('✅ Đã kích hoạt tab đầu tiên trong trang học tập');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tự động kích hoạt tab đầu tiên
+        auto_activate_first_tab();
+        
+        tai_danh_sach_mon_hoc();
+        tai_danh_sach_bai_tap();
+        tao_bang_lich_hoc();
+        
+        // Lắng nghe sự kiện khi tab lịch học được kích hoạt
+        const tab_lich_hoc = document.querySelector('[data-bs-target="#lich-hoc"]');
+        if (tab_lich_hoc) {
+            tab_lich_hoc.addEventListener('shown.bs.tab', function() {
+                tai_lich_hoc();
+            });
+        }
+        
+        // Tự động tải lịch học sau 1 giây (đảm bảo DOM đã sẵn sàng)
+        setTimeout(function() {
+            tai_lich_hoc();
+        }, 1000);
+    });
+
+    async function tai_danh_sach_mon_hoc() {
+        try {
+            const response = await fetch('/api/mon-hoc');
+            const data = await response.json();
+            
+            if (data.thanh_cong) {
+                danh_sach_mon_hoc_global = data.du_lieu;
+                hien_thi_danh_sach_mon_hoc(data.du_lieu);
+                cap_nhat_select_mon_hoc(data.du_lieu);
+            } else {
+                throw new Error(data.loi);
+            }
+        } catch (error) {
+            console.error('Lỗi tải môn học:', error);
+            document.getElementById('danh-sach-mon-hoc').innerHTML = `
+                <div class="col-12 text-center py-5 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Lỗi tải dữ liệu: ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    function hien_thi_danh_sach_mon_hoc(danh_sach) {
+        const container = document.getElementById('danh-sach-mon-hoc');
+        
+        if (danh_sach.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Chưa có môn học nào</p>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal-them-mon-hoc">
+                        <i class="fas fa-plus me-1"></i>Thêm môn học đầu tiên
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = danh_sach.map(mon => `
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">${mon.ten_mon_hoc}</h6>
+                        <p class="card-text">
+                            ${mon.ma_mon_hoc ? `<strong>Mã:</strong> ${mon.ma_mon_hoc}<br>` : ''}
+                            ${mon.so_tin_chi ? `<strong>Tín chỉ:</strong> ${mon.so_tin_chi}<br>` : ''}
+                            ${mon.giang_vien ? `<strong>GV:</strong> ${mon.giang_vien}` : ''}
+                        </p>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="sua_mon_hoc_by_id(${mon.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="xoa_mon_hoc(${mon.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function cap_nhat_select_mon_hoc(danh_sach) {
+        const select = document.getElementById('mon-hoc-bai-tap');
+        const selectLoc = document.getElementById('loc-mon-hoc');
+        const selectLichHoc = document.getElementById('them-mon-hoc-lich'); // Thêm select cho modal lịch học
+        
+        const options = '<option value="">Chọn môn học</option>' + 
+            danh_sach.map(mon => `<option value="${mon.id}">${mon.ten_mon_hoc}</option>`).join('');
+        
+        select.innerHTML = options;
+        
+        // Cập nhật select lọc (bỏ option "Chọn môn học")
+        selectLoc.innerHTML = '<option value="">Tất cả</option>' + 
+            danh_sach.map(mon => `<option value="${mon.id}">${mon.ten_mon_hoc}</option>`).join('');
+        
+        // Cập nhật select lịch học nếu tồn tại
+        if (selectLichHoc) {
+            selectLichHoc.innerHTML = options;
+        }
+    }
+
+    async function tai_danh_sach_bai_tap() {
+        try {
+            const response = await fetch('/api/bai-tap');
+            const data = await response.json();
+            
+            if (data.thanh_cong) {
+                hien_thi_danh_sach_bai_tap(data.du_lieu);
+                cap_nhat_thong_ke_bai_tap(data.du_lieu);
+            } else {
+                throw new Error(data.loi);
+            }
+        } catch (error) {
+            console.error('Lỗi tải bài tập:', error);
+            document.getElementById('danh-sach-bai-tap').innerHTML = `
+                <div class="col-12 text-center py-5 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Lỗi tải dữ liệu: ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    function cap_nhat_thong_ke_bai_tap(danh_sach) {
+        const tong = danh_sach.length;
+        const chua_lam = danh_sach.filter(bt => !bt.trang_thai || bt.trang_thai === 'chua-lam').length;
+        const dang_lam = danh_sach.filter(bt => bt.trang_thai === 'dang-lam').length;
+        const hoan_thanh = danh_sach.filter(bt => bt.trang_thai === 'hoan-thanh').length;
+
+        document.getElementById('tong-bai-tap').textContent = tong;
+        document.getElementById('chua-lam-count').textContent = chua_lam;
+        document.getElementById('dang-lam-count').textContent = dang_lam;
+        document.getElementById('hoan-thanh-count').textContent = hoan_thanh;
+    }
+
+    function hien_thi_danh_sach_bai_tap(danh_sach) {
+        const container = document.getElementById('danh-sach-bai-tap');
+        
+        if (danh_sach.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Chưa có bài tập nào</p>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal-them-bai-tap">
+                        <i class="fas fa-plus me-1"></i>Thêm bài tập đầu tiên
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = danh_sach.map(bai_tap => {
+            const mau_uu_tien = bai_tap.muc_do_uu_tien === 'cao' ? 'danger' : 
+                               bai_tap.muc_do_uu_tien === 'trung-binh' ? 'warning' : 'success';
+            
+            // Lấy tên môn học từ relationship hoặc fallback
+            const ten_mon_hoc = bai_tap.mon_hoc && bai_tap.mon_hoc.ten_mon_hoc ? 
+                               bai_tap.mon_hoc.ten_mon_hoc : 'Không có môn học';
+            
+            // Kiểm tra quá hạn
+            const ngay_han = new Date(bai_tap.han_nop);
+            const hom_nay = new Date();
+            const qua_han = ngay_han < hom_nay && bai_tap.trang_thai !== 'hoan-thanh';
+            
+            // Màu sắc cho trạng thái
+            const mau_trang_thai = bai_tap.trang_thai === 'hoan-thanh' ? 'success' : 
+                                  bai_tap.trang_thai === 'dang-lam' ? 'warning' : 
+                                  qua_han ? 'danger' : 'secondary';
+            
+            return `
+                <div class="col-md-6 col-lg-4 mb-3" data-trang-thai="${bai_tap.trang_thai || 'chua-lam'}" 
+                     data-uu-tien="${bai_tap.muc_do_uu_tien}" data-mon-hoc="${bai_tap.mon_hoc_id || ''}" 
+                     data-han-nop="${bai_tap.han_nop}">
+                    <div class="card border-${mau_uu_tien} bai-tap-card ${qua_han ? 'card-border-qua-han' : ''}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title ${qua_han ? 'qua-han-warning' : ''}">${bai_tap.tieu_de} ${qua_han ? '<i class="fas fa-exclamation-triangle text-danger ms-1" title="Quá hạn"></i>' : ''}</h6>
+                                <span class="badge bg-${mau_uu_tien}">${bai_tap.muc_do_uu_tien.charAt(0).toUpperCase() + bai_tap.muc_do_uu_tien.slice(1)}</span>
+                            </div>
+                            <p class="card-text small">
+                                <strong>Môn:</strong> ${ten_mon_hoc}<br>
+                                <strong>Hạn nộp:</strong> ${dinh_dang_ngay_gio(bai_tap.han_nop)}<br>
+                                ${bai_tap.mo_ta ? `<em>"${bai_tap.mo_ta}"</em>` : ''}
+                            </p>
+                            
+                            <!-- Nút chỉnh trạng thái nhanh -->
+                            <div class="mb-2">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle w-100 ${mau_trang_thai === 'success' ? 'btn-success' : mau_trang_thai === 'warning' ? 'btn-warning' : mau_trang_thai === 'danger' ? 'btn-danger' : 'btn-secondary'}" 
+                                            type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas ${bai_tap.trang_thai === 'hoan-thanh' ? 'fa-check' : bai_tap.trang_thai === 'dang-lam' ? 'fa-play' : 'fa-clock'} me-1"></i>
+                                        ${lay_ten_trang_thai(bai_tap.trang_thai || 'chua-lam')}
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item ${bai_tap.trang_thai === 'chua-lam' || !bai_tap.trang_thai ? 'active' : ''}" 
+                                               href="#" onclick="doi_trang_thai_bai_tap(${bai_tap.id}, 'chua-lam'); event.preventDefault();">
+                                                <i class="fas fa-clock text-secondary me-2"></i>Chưa làm
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item ${bai_tap.trang_thai === 'dang-lam' ? 'active' : ''}" 
+                                               href="#" onclick="doi_trang_thai_bai_tap(${bai_tap.id}, 'dang-lam'); event.preventDefault();">
+                                                <i class="fas fa-play text-warning me-2"></i>Đang làm
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item ${bai_tap.trang_thai === 'hoan-thanh' ? 'active' : ''}" 
+                                               href="#" onclick="doi_trang_thai_bai_tap(${bai_tap.id}, 'hoan-thanh'); event.preventDefault();">
+                                                <i class="fas fa-check text-success me-2"></i>Hoàn thành
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    ${dinh_dang_ngay_gio(bai_tap.han_nop)}
+                                </small>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="sua_bai_tap_by_id(${bai_tap.id})" title="Sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="xoa_bai_tap(${bai_tap.id})" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function tao_bang_lich_hoc() {
+        const tbody = document.getElementById('bang-lich-hoc');
+        const gio_hoc = [
+            '09:10-10:40', '10:50-12:20', '13:10-14:40', 
+            '14:50-16:20', '16:30-18:00', '18:10-19:40'
+        ];
+        
+        tbody.innerHTML = gio_hoc.map((gio, index) => `
+            <tr>
+                <td class="fw-bold text-center">Tiết ${index + 1}<br><small class="text-muted">${gio}</small></td>
+                <td class="p-1"><div class="lich-slot" data-thu="2" data-gio="${gio}" data-tiet="${index + 1}" onclick="chon_lich_slot(this)"></div></td>
+                <td class="p-1"><div class="lich-slot" data-thu="3" data-gio="${gio}" data-tiet="${index + 1}" onclick="chon_lich_slot(this)"></div></td>
+                <td class="p-1"><div class="lich-slot" data-thu="4" data-gio="${gio}" data-tiet="${index + 1}" onclick="chon_lich_slot(this)"></div></td>
+                <td class="p-1"><div class="lich-slot" data-thu="5" data-gio="${gio}" data-tiet="${index + 1}" onclick="chon_lich_slot(this)"></div></td>
+                <td class="p-1"><div class="lich-slot" data-thu="6" data-gio="${gio}" data-tiet="${index + 1}" onclick="chon_lich_slot(this)"></div></td>
+                <td class="p-1"><div class="lich-slot" data-thu="7" data-gio="${gio}" data-tiet="${index + 1}" onclick="chon_lich_slot(this)"></div></td>
+            </tr>
+        `).join('');
+        
+        // Chỉ tải lịch học nếu tab lịch học đang được hiển thị
+        const tab_lich_hoc = document.getElementById('lich-hoc');
+        if (tab_lich_hoc && tab_lich_hoc.classList.contains('show')) {
+            tai_lich_hoc();
+        }
+    }
+
+    async function them_mon_hoc() {
+        const form = document.getElementById('form-them-mon-hoc');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const du_lieu = {
+            ten_mon_hoc: document.getElementById('ten-mon-hoc').value,
+            ma_mon_hoc: document.getElementById('ma-mon-hoc').value,
+            so_tin_chi: parseInt(document.getElementById('so-tin-chi').value) || null,
+            giang_vien: document.getElementById('giang-vien').value
+        };
+        
+        try {
+            const response = await fetch('/api/mon-hoc', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(du_lieu)
+            });
+            
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                hien_thi_thong_bao(result.thong_bao, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modal-them-mon-hoc')).hide();
+                form.reset();
+                
+                // Cập nhật danh sách môn học
+                await tai_danh_sach_mon_hoc();
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    function sua_mon_hoc(id, ten, ma, tin_chi, giang_vien) {
+        // Điền dữ liệu vào form sửa
+        document.getElementById('sua-mon-hoc-id').value = id;
+        document.getElementById('sua-ten-mon-hoc').value = ten;
+        document.getElementById('sua-ma-mon-hoc').value = ma;
+        document.getElementById('sua-so-tin-chi').value = tin_chi !== 'null' ? tin_chi : '';
+        document.getElementById('sua-giang-vien').value = giang_vien;
+        
+        // Hiển thị modal
+        new bootstrap.Modal(document.getElementById('modal-sua-mon-hoc')).show();
+    }
+
+    async function sua_mon_hoc_by_id(id) {
+        try {
+            // Tìm môn học trong danh sách hiện tại
+            const response = await fetch('/api/mon-hoc');
+            const data = await response.json();
+            
+            if (data.thanh_cong) {
+                const mon_hoc = data.du_lieu.find(m => m.id === id);
+                if (mon_hoc) {
+                    document.getElementById('sua-mon-hoc-id').value = mon_hoc.id;
+                    document.getElementById('sua-ten-mon-hoc').value = mon_hoc.ten_mon_hoc || '';
+                    document.getElementById('sua-ma-mon-hoc').value = mon_hoc.ma_mon_hoc || '';
+                    document.getElementById('sua-so-tin-chi').value = mon_hoc.so_tin_chi || '';
+                    document.getElementById('sua-giang-vien').value = mon_hoc.giang_vien || '';
+                    
+                    // Hiển thị modal
+                    new bootstrap.Modal(document.getElementById('modal-sua-mon-hoc')).show();
+                }
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi khi tải dữ liệu: ${error.message}`, 'error');
+        }
+    }
+
+    async function cap_nhat_mon_hoc() {
+        const form = document.getElementById('form-sua-mon-hoc');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const id = document.getElementById('sua-mon-hoc-id').value;
+        const du_lieu = {
+            ten_mon_hoc: document.getElementById('sua-ten-mon-hoc').value,
+            ma_mon_hoc: document.getElementById('sua-ma-mon-hoc').value,
+            so_tin_chi: parseInt(document.getElementById('sua-so-tin-chi').value) || null,
+            giang_vien: document.getElementById('sua-giang-vien').value
+        };
+        
+        try {
+            const response = await fetch(`/api/mon-hoc/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(du_lieu)
+            });
+            
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                hien_thi_thong_bao(result.thong_bao, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modal-sua-mon-hoc')).hide();
+                
+                // Cập nhật danh sách môn học
+                await tai_danh_sach_mon_hoc();
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    async function them_bai_tap() {
+        const form = document.getElementById('form-them-bai-tap');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const du_lieu = {
+            tieu_de: document.getElementById('tieu-de-bai-tap').value,
+            mon_hoc_id: parseInt(document.getElementById('mon-hoc-bai-tap').value) || null,
+            han_nop: document.getElementById('han-nop').value,
+            muc_do_uu_tien: document.getElementById('muc-do-uu-tien').value,
+            mo_ta: document.getElementById('mo-ta-bai-tap').value
+        };
+        
+        try {
+            const response = await fetch('/api/bai-tap', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(du_lieu)
+            });
+            
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                hien_thi_thong_bao(result.thong_bao, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modal-them-bai-tap')).hide();
+                form.reset();
+                
+                // Cập nhật danh sách bài tập
+                await tai_danh_sach_bai_tap();
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    function sua_bai_tap(id, tieu_de, mon_hoc_id, han_nop, muc_do_uu_tien, mo_ta, trang_thai) {
+        // Điền dữ liệu vào form sửa
+        document.getElementById('sua-bai-tap-id').value = id;
+        document.getElementById('sua-tieu-de-bai-tap').value = tieu_de;
+        document.getElementById('sua-mon-hoc-bai-tap').value = mon_hoc_id !== 'null' ? mon_hoc_id : '';
+        
+        // Chuyển đổi ngày giờ về định dạng datetime-local
+        if (han_nop) {
+            const ngay_gio = new Date(han_nop);
+            document.getElementById('sua-han-nop').value = ngay_gio.toISOString().slice(0, 16);
+        }
+        
+        document.getElementById('sua-muc-do-uu-tien').value = muc_do_uu_tien;
+        document.getElementById('sua-trang-thai').value = trang_thai;
+        document.getElementById('sua-mo-ta-bai-tap').value = mo_ta;
+        
+        // Cập nhật danh sách môn học cho select trong form sửa
+        cap_nhat_select_sua_bai_tap();
+        
+        // Hiển thị modal
+        new bootstrap.Modal(document.getElementById('modal-sua-bai-tap')).show();
+    }
+
+    async function sua_bai_tap_by_id(id) {
+        try {
+            // Tìm bài tập trong danh sách hiện tại
+            const response = await fetch('/api/bai-tap');
+            const data = await response.json();
+            
+            if (data.thanh_cong) {
+                const bai_tap = data.du_lieu.find(bt => bt.id === id);
+                if (bai_tap) {
+                    document.getElementById('sua-bai-tap-id').value = bai_tap.id;
+                    document.getElementById('sua-tieu-de-bai-tap').value = bai_tap.tieu_de || '';
+                    document.getElementById('sua-mon-hoc-bai-tap').value = bai_tap.mon_hoc_id || '';
+                    
+                    // Chuyển đổi ngày giờ về định dạng datetime-local
+                    if (bai_tap.han_nop) {
+                        const ngay_gio = new Date(bai_tap.han_nop);
+                        document.getElementById('sua-han-nop').value = ngay_gio.toISOString().slice(0, 16);
+                    }
+                    
+                    document.getElementById('sua-muc-do-uu-tien').value = bai_tap.muc_do_uu_tien || 'trung-binh';
+                    document.getElementById('sua-trang-thai').value = bai_tap.trang_thai || 'chua-lam';
+                    document.getElementById('sua-mo-ta-bai-tap').value = bai_tap.mo_ta || '';
+                    
+                    // Cập nhật danh sách môn học cho select trong form sửa
+                    cap_nhat_select_sua_bai_tap();
+                    
+                    // Hiển thị modal
+                    new bootstrap.Modal(document.getElementById('modal-sua-bai-tap')).show();
+                }
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi khi tải dữ liệu: ${error.message}`, 'error');
+        }
+    }
+
+    function cap_nhat_select_sua_bai_tap() {
+        // Sao chép options từ select thêm bài tập sang select sửa bài tập
+        const selectThem = document.getElementById('mon-hoc-bai-tap');
+        const selectSua = document.getElementById('sua-mon-hoc-bai-tap');
+        selectSua.innerHTML = selectThem.innerHTML;
+    }
+
+    async function cap_nhat_bai_tap() {
+        const form = document.getElementById('form-sua-bai-tap');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const id = document.getElementById('sua-bai-tap-id').value;
+        const du_lieu = {
+            tieu_de: document.getElementById('sua-tieu-de-bai-tap').value,
+            mon_hoc_id: parseInt(document.getElementById('sua-mon-hoc-bai-tap').value) || null,
+            han_nop: document.getElementById('sua-han-nop').value,
+            muc_do_uu_tien: document.getElementById('sua-muc-do-uu-tien').value,
+            mo_ta: document.getElementById('sua-mo-ta-bai-tap').value,
+            trang_thai: document.getElementById('sua-trang-thai').value
+        };
+        
+        try {
+            const response = await fetch(`/api/bai-tap/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(du_lieu)
+            });
+            
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                hien_thi_thong_bao(result.thong_bao, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modal-sua-bai-tap')).hide();
+                
+                // Cập nhật danh sách bài tập
+                await tai_danh_sach_bai_tap();
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    async function xoa_mon_hoc(id) {
+        if (confirm('Bạn có chắc muốn xóa môn học này?')) {
+            try {
+                const response = await fetch(`/api/mon-hoc/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.thanh_cong) {
+                    hien_thi_thong_bao(result.thong_bao, 'success');
+                    await tai_danh_sach_mon_hoc();
+                } else {
+                    throw new Error(result.loi);
+                }
+            } catch (error) {
+                hien_thi_thong_bao(`Lỗi khi xóa: ${error.message}`, 'error');
+            }
+        }
+    }
+
+    async function xoa_bai_tap(id) {
+        if (confirm('Bạn có chắc muốn xóa bài tập này?')) {
+            try {
+                const response = await fetch(`/api/bai-tap/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.thanh_cong) {
+                    hien_thi_thong_bao(result.thong_bao, 'success');
+                    await tai_danh_sach_bai_tap();
+                } else {
+                    throw new Error(result.loi);
+                }
+            } catch (error) {
+                hien_thi_thong_bao(`Lỗi khi xóa: ${error.message}`, 'error');
+            }
+        }
+    }
+
+    function dinh_dang_ngay_gio(ngay_gio_str) {
+        const ngay_gio = new Date(ngay_gio_str);
+        return ngay_gio.toLocaleString('vi-VN');
+    }
+
+    function lay_ten_trang_thai(trang_thai) {
+        switch(trang_thai) {
+            case 'chua-lam': return 'Chưa làm';
+            case 'dang-lam': return 'Đang làm';
+            case 'hoan-thanh': return 'Hoàn thành';
+            default: return 'Chưa làm';
+        }
+    }
+
+    // Bộ lọc bài tập
+    function ap_dung_bo_loc_bai_tap() {
+        const trang_thai = document.getElementById('loc-trang-thai').value;
+        const uu_tien = document.getElementById('loc-uu-tien').value;
+        const mon_hoc = document.getElementById('loc-mon-hoc').value;
+        const han_nop = document.getElementById('loc-han-nop').value;
+        
+        const cards = document.querySelectorAll('#danh-sach-bai-tap .col-md-6');
+        let visible_count = 0;
+        let visible_chua_lam = 0;
+        let visible_dang_lam = 0;
+        let visible_hoan_thanh = 0;
+        
+        cards.forEach(card => {
+            let hien_thi = true;
+            
+            // Lọc theo trạng thái
+            if (trang_thai && card.dataset.trangThai !== trang_thai) {
+                hien_thi = false;
+            }
+            
+            // Lọc theo mức độ ưu tiên
+            if (uu_tien && card.dataset.uuTien !== uu_tien) {
+                hien_thi = false;
+            }
+            
+            // Lọc theo môn học
+            if (mon_hoc && card.dataset.monHoc !== mon_hoc) {
+                hien_thi = false;
+            }
+            
+            // Lọc theo hạn nộp
+            if (han_nop) {
+                const ngay_han = new Date(card.dataset.hanNop);
+                const hom_nay = new Date();
+                hom_nay.setHours(0, 0, 0, 0);
+                
+                let thoa_man = false;
+                switch(han_nop) {
+                    case 'qua-han':
+                        thoa_man = ngay_han < hom_nay;
+                        break;
+                    case 'hom-nay':
+                        const ngay_mai = new Date(hom_nay);
+                        ngay_mai.setDate(ngay_mai.getDate() + 1);
+                        thoa_man = ngay_han >= hom_nay && ngay_han < ngay_mai;
+                        break;
+                    case 'tuan-nay':
+                        const cuoi_tuan = new Date(hom_nay);
+                        cuoi_tuan.setDate(cuoi_tuan.getDate() + (7 - cuoi_tuan.getDay()));
+                        thoa_man = ngay_han >= hom_nay && ngay_han <= cuoi_tuan;
+                        break;
+                    case 'thang-nay':
+                        const cuoi_thang = new Date(hom_nay.getFullYear(), hom_nay.getMonth() + 1, 0);
+                        thoa_man = ngay_han >= hom_nay && ngay_han <= cuoi_thang;
+                        break;
+                }
+                if (!thoa_man) hien_thi = false;
+            }
+            
+            if (hien_thi) {
+                visible_count++;
+                const card_trang_thai = card.dataset.trangThai || 'chua-lam';
+                if (card_trang_thai === 'chua-lam') visible_chua_lam++;
+                else if (card_trang_thai === 'dang-lam') visible_dang_lam++;
+                else if (card_trang_thai === 'hoan-thanh') visible_hoan_thanh++;
+            }
+            
+            card.style.display = hien_thi ? 'block' : 'none';
+        });
+
+        // Cập nhật thống kê hiển thị
+        document.getElementById('tong-bai-tap').textContent = visible_count;
+        document.getElementById('chua-lam-count').textContent = visible_chua_lam;
+        document.getElementById('dang-lam-count').textContent = visible_dang_lam;
+        document.getElementById('hoan-thanh-count').textContent = visible_hoan_thanh;
+    }
+
+    function xoa_bo_loc_bai_tap() {
+        document.getElementById('loc-trang-thai').value = '';
+        document.getElementById('loc-uu-tien').value = '';
+        document.getElementById('loc-mon-hoc').value = '';
+        document.getElementById('loc-han-nop').value = '';
+        
+        // Hiển thị lại tất cả
+        const cards = document.querySelectorAll('#danh-sach-bai-tap .col-md-6');
+        cards.forEach(card => {
+            card.style.display = 'block';
+        });
+
+        // Tải lại thống kê gốc
+        tai_danh_sach_bai_tap();
+    }
+
+    // Đổi trạng thái bài tập nhanh
+    async function doi_trang_thai_bai_tap(id, trang_thai_moi) {
+        try {
+            // Lấy thông tin bài tập hiện tại
+            const response = await fetch('/api/bai-tap');
+            const data = await response.json();
+            
+            if (data.thanh_cong) {
+                const bai_tap = data.du_lieu.find(bt => bt.id === id);
+                if (bai_tap) {
+                    // Cập nhật chỉ trạng thái
+                    const du_lieu = {
+                        tieu_de: bai_tap.tieu_de,
+                        mon_hoc_id: bai_tap.mon_hoc_id,
+                        han_nop: bai_tap.han_nop,
+                        muc_do_uu_tien: bai_tap.muc_do_uu_tien,
+                        mo_ta: bai_tap.mo_ta,
+                        trang_thai: trang_thai_moi
+                    };
+                    
+                    const updateResponse = await fetch(`/api/bai-tap/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(du_lieu)
+                    });
+                    
+                    const result = await updateResponse.json();
+                    
+                    if (result.thanh_cong) {
+                        hien_thi_thong_bao(`Đã cập nhật trạng thái: ${lay_ten_trang_thai(trang_thai_moi)}`, 'success');
+                        await tai_danh_sach_bai_tap();
+                    } else {
+                        throw new Error(result.loi);
+                    }
+                }
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi khi cập nhật trạng thái: ${error.message}`, 'error');
+        }
+    }
+
+    function hien_thi_thong_bao(thong_bao, loai) {
+        // Tạo toast notification
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${loai === 'success' ? 'success' : 'danger'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${loai === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+                    ${thong_bao}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        
+        // Thêm vào container
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '1055';
+            document.body.appendChild(container);
+        }
+        
+        container.appendChild(toast);
+        
+        // Hiển thị toast
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        // Tự động xóa sau khi ẩn
+        toast.addEventListener('hidden.bs.toast', function () {
+            toast.remove();
+        });
+    }
+
+    // Hàm xử lý lịch học
+    function chon_lich_slot(slot) {
+        // Nếu đã có môn học trong slot này
+        if (slot.classList.contains('co-lich')) {
+            // Hiển thị thông tin và tùy chọn xóa
+            const mon_hoc_id = slot.dataset.monHocId;
+            const mon_hoc = danh_sach_mon_hoc_global.find(m => m.id == mon_hoc_id);
+            const thu_text = lay_ten_thu(slot.dataset.thu);
+            const gio_text = slot.dataset.gio;
+            
+            if (confirm(`Môn học: ${mon_hoc ? mon_hoc.ten_mon_hoc : 'Không xác định'}\nThời gian: ${thu_text}, ${gio_text}\n\nBạn có muốn xóa lịch học này không?`)) {
+                xoa_lich_hoc(slot);
+            }
+        } else {
+            // Chọn slot để thêm môn học
+            slot_dang_chon = slot;
+            hien_thi_modal_chon_mon_hoc();
+        }
+    }
+
+    function hien_thi_modal_chon_mon_hoc() {
+        if (danh_sach_mon_hoc_global.length === 0) {
+            hien_thi_thong_bao('Chưa có môn học nào. Vui lòng thêm môn học trước!', 'error');
+            return;
+        }
+
+        const thu_text = lay_ten_thu(slot_dang_chon.dataset.thu);
+        const gio_text = slot_dang_chon.dataset.gio;
+        const tiet_text = slot_dang_chon.dataset.tiet;
+
+        // Tạo modal động
+        const modal = document.createElement('div');
+        modal.className = 'modal fade';
+        modal.id = 'modal-chon-mon-hoc-lich';
+        modal.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-plus-circle me-2"></i>Thêm Môn Học Vào Lịch
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Thời gian:</strong> ${thu_text}, Tiết ${tiet_text} (${gio_text})
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Chọn môn học <span class="text-danger">*</span></label>
+                            <select class="form-select" id="chon-mon-hoc-lich" required>
+                                <option value="">-- Chọn môn học --</option>
+                                ${danh_sach_mon_hoc_global.map(mon => 
+                                    `<option value="${mon.id}">${mon.ten_mon_hoc} ${mon.ma_mon_hoc ? '(' + mon.ma_mon_hoc + ')' : ''}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phòng học</label>
+                            <input type="text" class="form-control" id="phong-hoc-lich" placeholder="VD: A101, B203...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea class="form-control" id="ghi-chu-lich" rows="2" placeholder="Ghi chú thêm..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-success" onclick="them_mon_hoc_vao_lich()">
+                            <i class="fas fa-save me-1"></i>Thêm Vào Lịch
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        
+        // Xóa modal sau khi đóng
+        modal.addEventListener('hidden.bs.modal', function () {
+            modal.remove();
+        });
+    }
+
+    function them_mon_hoc_vao_lich() {
+        const mon_hoc_id = document.getElementById('chon-mon-hoc-lich').value;
+        const phong_hoc = document.getElementById('phong-hoc-lich').value;
+        const ghi_chu = document.getElementById('ghi-chu-lich').value;
+        
+        if (!mon_hoc_id) {
+            hien_thi_thong_bao('Vui lòng chọn môn học!', 'error');
+            return;
+        }
+        
+        const mon_hoc = danh_sach_mon_hoc_global.find(m => m.id == mon_hoc_id);
+        if (!mon_hoc) {
+            hien_thi_thong_bao('Không tìm thấy môn học!', 'error');
+            return;
+        }
+        
+        // Gọi API thêm lịch học
+        const du_lieu = {
+            mon_hoc_id: parseInt(mon_hoc_id),
+            thu: parseInt(slot_dang_chon.dataset.thu),
+            tiet: parseInt(slot_dang_chon.dataset.tiet),
+            phong_hoc: phong_hoc,
+            ghi_chu: ghi_chu
+        };
+        
+        them_lich_hoc_len_database(du_lieu, mon_hoc);
+    }
+
+    async function them_lich_hoc_len_database(du_lieu, mon_hoc) {
+        try {
+            const response = await fetch('/api/lich-hoc/them-nhanh', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(du_lieu)
+            });
+            
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                // Cập nhật giao diện slot
+                cap_nhat_lich_slot(slot_dang_chon, mon_hoc, du_lieu.phong_hoc, du_lieu.ghi_chu);
+                
+                // Đóng modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modal-chon-mon-hoc-lich'));
+                modal.hide();
+                
+                hien_thi_thong_bao(result.thong_bao, 'success');
+                
+                // Lưu ID lịch học vào dataset
+                slot_dang_chon.dataset.lichHocId = result.du_lieu.id;
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    function cap_nhat_lich_slot(slot, mon_hoc, phong_hoc, ghi_chu) {
+        slot.classList.add('co-lich');
+        slot.dataset.monHocId = mon_hoc.id;
+        slot.dataset.phongHoc = phong_hoc || '';
+        slot.dataset.ghiChu = ghi_chu || '';
+        
+        const ten_mon_hoc = mon_hoc.ten_mon_hoc.length > 15 ? 
+                           mon_hoc.ten_mon_hoc.substring(0, 15) + '...' : 
+                           mon_hoc.ten_mon_hoc;
+        
+        slot.innerHTML = `
+            <div class="lich-content">
+                <div class="fw-bold">${ten_mon_hoc}</div>
+                ${mon_hoc.ma_mon_hoc ? `<div class="text-muted small">${mon_hoc.ma_mon_hoc}</div>` : ''}
+                ${phong_hoc ? `<div class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i>${phong_hoc}</div>` : ''}
+                ${mon_hoc.giang_vien ? `<div class="text-muted small">${mon_hoc.giang_vien}</div>` : ''}
+            </div>
+        `;
+        
+        slot.title = `${mon_hoc.ten_mon_hoc}${phong_hoc ? ' - ' + phong_hoc : ''}${ghi_chu ? '\nGhi chú: ' + ghi_chu : ''}`;
+    }
+
+    function xoa_lich_hoc(slot) {
+        const lich_hoc_id = slot.dataset.lichHocId;
+        
+        if (lich_hoc_id) {
+            // Xóa khỏi database
+            xoa_lich_hoc_khoi_database(lich_hoc_id, slot);
+        } else {
+            // Chỉ xóa giao diện (dữ liệu cũ chưa có ID)
+            cap_nhat_slot_trong(slot);
+            hien_thi_thong_bao('Đã xóa lịch học!', 'success');
+        }
+    }
+
+    async function xoa_lich_hoc_khoi_database(lich_hoc_id, slot) {
+        try {
+            const response = await fetch(`/api/lich-hoc/${lich_hoc_id}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                cap_nhat_slot_trong(slot);
+                hien_thi_thong_bao(result.thong_bao, 'success');
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi khi xóa: ${error.message}`, 'error');
+        }
+    }
+
+    function cap_nhat_slot_trong(slot) {
+        slot.classList.remove('co-lich');
+        slot.innerHTML = '';
+        slot.title = '';
+        delete slot.dataset.monHocId;
+        delete slot.dataset.phongHoc;
+        delete slot.dataset.ghiChu;
+        delete slot.dataset.lichHocId;
+    }
+
+    async function tai_lich_hoc() {
+        try {
+            const response = await fetch('/api/lich-hoc');
+            const data = await response.json();
+            
+            if (data.thanh_cong) {
+                // Xóa tất cả lịch hiện tại
+                document.querySelectorAll('.lich-slot.co-lich').forEach(slot => {
+                    cap_nhat_slot_trong(slot);
+                });
+                
+                // Hiển thị lịch học từ database
+                let dem_lich_hien_thi = 0;
+                data.du_lieu.forEach(lich => {
+                    // Chuyển đổi tiết học thành slot tương ứng
+                    const gio_bat_dau = lich.gio_bat_dau;
+                    const tiet_hoc = chuyen_doi_gio_thanh_tiet(gio_bat_dau);
+                    
+                    // Tìm môn học từ danh sách global
+                    const mon_hoc = danh_sach_mon_hoc_global.find(m => m.id === lich.mon_hoc_id);
+                    
+                    if (tiet_hoc) {
+                        const slot = document.querySelector(`[data-thu="${lich.thu}"][data-tiet="${tiet_hoc}"]`);
+                        
+                        if (slot && mon_hoc) {
+                            slot.dataset.lichHocId = lich.id;
+                            cap_nhat_lich_slot(slot, mon_hoc, lich.phong_hoc, lich.ghi_chu);
+                            dem_lich_hien_thi++;
+                        }
+                    }
+                });
+            }
+        } catch (error) {
+            // Xử lý lỗi tại đây nếu cần
+        }
+    }
+
+    function chuyen_doi_gio_thanh_tiet(gio_bat_dau) {
+        // Mapping giờ bắt đầu với tiết học (khung giờ mới: 6 tiết)
+        const mapping_tiet = {
+            '09:10:00': 1, '09:10': 1,    // Tiết 1: 09:10-10:40
+            '10:50:00': 2, '10:50': 2,    // Tiết 2: 10:50-12:20
+            '13:10:00': 3, '13:10': 3,    // Tiết 3: 13:10-14:40
+            '14:50:00': 4, '14:50': 4,    // Tiết 4: 14:50-16:20
+            '16:30:00': 5, '16:30': 5,    // Tiết 5: 16:30-18:00
+            '18:10:00': 6, '18:10': 6     // Tiết 6: 18:10-19:40
+        };
+        return mapping_tiet[gio_bat_dau] || null;
+    }
+
+    function chuyen_doi_tiet_thanh_gio(tiet) {
+        // Mapping tiết học với giờ bắt đầu và kết thúc (khung giờ mới: 6 tiết)
+        const mapping_gio = {
+            1: { bat_dau: '09:10', ket_thuc: '10:40' },  // Tiết 1: 09:10-10:40
+            2: { bat_dau: '10:50', ket_thuc: '12:20' },  // Tiết 2: 10:50-12:20
+            3: { bat_dau: '13:10', ket_thuc: '14:40' },  // Tiết 3: 13:10-14:40
+            4: { bat_dau: '14:50', ket_thuc: '16:20' },  // Tiết 4: 14:50-16:20
+            5: { bat_dau: '16:30', ket_thuc: '18:00' },  // Tiết 5: 16:30-18:00
+            6: { bat_dau: '18:10', ket_thuc: '19:40' }   // Tiết 6: 18:10-19:40
+        };
+        return mapping_gio[tiet] || null;
+    }
+
+    async function them_lich_hoc_thang() {
+        const form = document.getElementById('form-them-lich-hoc');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const mon_hoc_id = document.getElementById('them-mon-hoc-lich').value;
+        const thu = document.getElementById('them-thu-lich').value;
+        const tiet = document.getElementById('them-tiet-lich').value;
+        const phong_hoc = document.getElementById('them-phong-hoc-lich').value;
+        const ghi_chu = document.getElementById('them-ghi-chu-lich').value;
+        
+        if (!mon_hoc_id || !thu || !tiet) {
+            hien_thi_thong_bao('Vui lòng điền đầy đủ thông tin bắt buộc!', 'error');
+            return;
+        }
+        
+        // Kiểm tra trùng lịch (sửa logic kiểm tra)
+        const slot_kiem_tra = document.querySelector(`[data-thu="${thu}"][data-tiet="${tiet}"]`);
+        if (slot_kiem_tra && slot_kiem_tra.classList.contains('co-lich')) {
+            const mon_hoc_hien_tai = danh_sach_mon_hoc_global.find(m => m.id == slot_kiem_tra.dataset.monHocId);
+            const ten_mon_hoc = mon_hoc_hien_tai ? mon_hoc_hien_tai.ten_mon_hoc : 'Không xác định';
+            hien_thi_thong_bao(`Thời gian này đã có lịch học môn "${ten_mon_hoc}"!`, 'error');
+            return;
+        }
+        
+        // Lấy thông tin giờ học
+        const thong_tin_gio = chuyen_doi_tiet_thanh_gio(parseInt(tiet));
+        if (!thong_tin_gio) {
+            hien_thi_thong_bao('Tiết học không hợp lệ!', 'error');
+            return;
+        }
+        
+        const du_lieu = {
+            mon_hoc_id: parseInt(mon_hoc_id),
+            thu: parseInt(thu),
+            gio_bat_dau: thong_tin_gio.bat_dau,
+            gio_ket_thuc: thong_tin_gio.ket_thuc,
+            phong_hoc: phong_hoc,
+            ghi_chu: ghi_chu
+        };
+        
+        try {
+            const response = await fetch('/api/lich-hoc', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(du_lieu)
+            });
+            
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                hien_thi_thong_bao(result.thong_bao, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modal-them-lich-hoc')).hide();
+                form.reset();
+                
+                // Tải lại lịch học để hiển thị lịch mới
+                await tai_lich_hoc();
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    function lay_ten_thu(thu_so) {
+        const ten_thu = {
+            '2': 'Thứ Hai',
+            '3': 'Thứ Ba', 
+            '4': 'Thứ Tư',
+            '5': 'Thứ Năm',
+            '6': 'Thứ Sáu',
+            '7': 'Thứ Bảy'
+        };
+        return ten_thu[thu_so] || `Thứ ${thu_so}`;
+    }
+</script>
+
+<style>
+    .lich-slot {
+        min-height: 60px;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 5px;
+        background-color: #f8f9fa;
+    }
+    
+    .lich-slot:hover {
+        background-color: #e3f2fd;
+        border-color: #2196f3;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+    }
+    
+    .lich-slot.co-lich {
+        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+        border: 2px solid #4caf50;
+        color: white;
+        border-style: solid;
+        min-height: 70px;
+    }
+
+    .lich-slot.co-lich:hover {
+        background: linear-gradient(135deg, #388e3c 0%, #4caf50 100%);
+        border-color: #388e3c;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+
+    .lich-content {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .lich-content .fw-bold {
+        font-size: 0.8rem;
+        line-height: 1.2;
+        margin-bottom: 2px;
+    }
+
+    .lich-content .small {
+        font-size: 0.7rem;
+        line-height: 1.1;
+        opacity: 0.9;
+    }
+
+    /* Tạo hiệu ứng rung nhẹ khi hover vào slot có lịch */
+    .lich-slot.co-lich:hover .lich-content {
+        animation: gentle-shake 0.5s ease-in-out;
+    }
+
+    @keyframes gentle-shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-1px); }
+        75% { transform: translateX(1px); }
+    }
+
+    /* Style cho bảng lịch học */
+    .table th {
+        text-align: center;
+        vertical-align: middle;
+        background-color: #f1f8e9 !important;
+        color: #2e7d32;
+        font-weight: 600;
+        border-color: #c8e6c9;
+    }
+
+    .table td {
+        vertical-align: middle;
+        border-color: #e8f5e8;
+        padding: 4px;
+    }
+
+    .table td:first-child {
+        background-color: #f9fbe7;
+        border-right: 2px solid #c8e6c9;
+    }
+
+    /* Responsive cho mobile */
+    @media (max-width: 768px) {
+        .lich-slot {
+            min-height: 50px;
+            font-size: 0.75rem;
+            padding: 3px;
+        }
+        
+        .lich-slot.co-lich {
+            min-height: 55px;
+        }
+
+        .lich-content .fw-bold {
+            font-size: 0.7rem;
+        }
+
+        .lich-content .small {
+            font-size: 0.6rem;
+        }
+
+        .table {
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Styles cho bài tập */
+    .bai-tap-card {
+        transition: all 0.3s ease;
+    }
+
+    .bai-tap-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .btn-group-status .btn {
+        font-size: 11px;
+        padding: 2px 8px;
+    }
+
+    .qua-han-warning {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+
+    .card-border-qua-han {
+        border-left: 4px solid #dc3545 !important;
+    }
+
+    /* Responsive cho bộ lọc */
+    @media (max-width: 768px) {
+        .btn-group-status .btn {
+            font-size: 10px;
+            padding: 1px 4px;
+        }
+        
+        .card-body .btn-group {
+            flex-direction: column;
+        }
+        
+        .card-body .btn-group .btn {
+            border-radius: 4px !important;
+            margin-bottom: 2px;
+        }
+    }
+
+    /* Animation cho slot trống */
+    .lich-slot:empty:before {
+        content: '+';
+        font-size: 1.5rem;
+        color: #bbb;
+        opacity: 0.5;
+        transition: all 0.3s ease;
+    }
+
+    .lich-slot:empty:hover:before {
+        color: #2196f3;
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    /* Gradient border cho slot đang hover */
+    .lich-slot:hover:not(.co-lich) {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        border-image: linear-gradient(45deg, #2196f3, #9c27b0) 1;
+    }
+</style>
+{% endblock %}

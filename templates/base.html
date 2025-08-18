@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>{% block tieu_de %}Quản Lý Cá Nhân{% endblock %}</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Quản Lý Cá Nhân">
+    <meta name="description" content="Ứng dụng quản lý cá nhân - Thu chi, Học tập, Công việc, Ghi chú">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="background-color" content="#ffffff">
+    <meta name="display" content="standalone">
+    <meta name="orientation" content="portrait-primary">
+    
+    <!-- iOS PWA Meta Tags cho App-like experience -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="QLCN">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Icons và Manifest -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS tùy chỉnh -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <!-- Mobile CSS improvements -->
+    <link href="{{ url_for('static', filename='css/mobile.css') }}" rel="stylesheet">
+    <!-- Modal fix CSS cho mobile -->
+    <link href="{{ url_for('static', filename='css/modal_fix.css') }}" rel="stylesheet">
+    
+    <style>
+        /* CSS cơ bản responsive */
+        body {
+            padding-bottom: 80px; /* Để không bị che bởi bottom nav trên mobile */
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        /* Bottom navigation cho mobile */
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid #dee2e6;
+            padding: 12px 0; /* Tăng từ 10px lên 12px */
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .bottom-nav a {
+            color: #6c757d;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 8px 4px; /* Thêm padding để tăng kích thước */
+        }
+        
+        .bottom-nav a:hover,
+        .bottom-nav a.active {
+            color: #0d6efd !important;
+            background-color: transparent !important;
+            background: none !important;
+            /* Loại bỏ transform để không di chuyển nav */
+        }
+        
+        .bottom-nav .nav-item {
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+        
+        .bottom-nav .nav-item i {
+            font-size: 1.2rem; /* Tăng kích thước icon từ fa-lg */
+            margin-bottom: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .bottom-nav .nav-item small {
+            font-size: 0.75rem; /* Tăng kích thước chữ */
+            font-weight: 500;
+            display: block;
+        }
+        
+        /* Active indicator */
+        .bottom-nav a.active::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: #0d6efd;
+            border-radius: 0 0 3px 3px;
+        }
+        
+        .bottom-nav a.active i {
+            color: #0d6efd;
+            transform: scale(1.1);
+        }
+        
+        /* Responsive breakpoints */
+        @media (min-width: 992px) {
+            body {
+                padding-bottom: 0;
+            }
+            
+            .bottom-nav {
+                display: none !important;
+            }
+        }
+        
+        @media (max-width: 991px) {
+            .navbar-nav {
+                display: none;
+            }
+        }
+        
+        /* Form styling */
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        /* Button styling */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Thanh điều hướng chính -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='images/logo-vecter.png') }}" alt="Logo Quản Lý Cá Nhân" style="height:36px;max-width:40px;vertical-align:middle;margin-right:8px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+                <span class="brand-text">Quản Lý Cá Nhân</span>
+            </a>
+            
+            <!-- Menu desktop -->
+            <div class="navbar-nav ms-auto d-none d-lg-flex flex-row">
+                <a class="nav-link px-3" href="/">
+                    <i class="fas fa-home me-1"></i><span>Trang Chủ</span>
+                </a>
+                <a class="nav-link px-3" href="/chi-tieu">
+                    <i class="fas fa-wallet me-1"></i><span>Thu Chi</span>
+                </a>
+                <a class="nav-link px-3" href="/hoc-tap">
+                    <i class="fas fa-graduation-cap me-1"></i><span>Học Tập</span>
+                </a>
+                <a class="nav-link px-3" href="/cong-viec">
+                    <i class="fas fa-briefcase me-1"></i><span>Công Việc</span>
+                </a>
+                <a class="nav-link px-3" href="/ghi-chu">
+                    <i class="fas fa-sticky-note me-1"></i><span>Ghi Chú</span>
+                </a>
+                
+                <!-- Dropdown quản trị -->
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-3" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Quản trị">
+                        <i class="fas fa-cog settings-icon"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/cai-dat">
+                            <i class="fas fa-sliders-h me-2"></i>Cài đặt
+                        </a></li>
+                        <li><a class="dropdown-item" href="#" onclick="moModalDoiMatKhau()">
+                            <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="dangXuat()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Nội dung chính -->
+    <main class="container-fluid py-3 fade-in">
+        <!-- Hiển thị thông báo flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row">
+                    <div class="col-12">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Nội dung trang -->
+        {% block noi_dung %}{% endblock %}
+    </main>
+
+    <!-- Bottom navigation cho mobile -->
+    <nav class="navbar fixed-bottom bottom-nav d-lg-none">
+        <div class="container-fluid">
+            <div class="d-flex w-100 justify-content-around">
+                <a href="/" class="nav-item">
+                    <i class="fas fa-home fa-lg d-block"></i>
+                    <small>Trang Chủ</small>
+                </a>
+                <a href="/chi-tieu" class="nav-item">
+                    <i class="fas fa-wallet fa-lg d-block"></i>
+                    <small>Thu Chi</small>
+                </a>
+                <a href="/hoc-tap" class="nav-item">
+                    <i class="fas fa-graduation-cap fa-lg d-block"></i>
+                    <small>Học Tập</small>
+                </a>
+                <a href="/cong-viec" class="nav-item">
+                    <i class="fas fa-briefcase fa-lg d-block"></i>
+                    <small>Công Việc</small>
+                </a>
+                <a href="/ghi-chu" class="nav-item">
+                    <i class="fas fa-sticky-note fa-lg d-block"></i>
+                    <small>Ghi Chú</small>
+                </a>
+                <a href="#" class="nav-item" data-bs-toggle="modal" data-bs-target="#modal-quan-tri">
+                    <i class="fas fa-cog fa-lg d-block"></i>
+                    <small>Quản Trị</small>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Modal Quản Trị cho Mobile -->
+    <div class="modal fade" id="modal-quan-tri" tabindex="-1" aria-labelledby="modalQuanTriLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalQuanTriLabel">
+                        <i class="fas fa-cog me-2"></i>Quản Trị
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="/cai-dat" class="list-group-item list-group-item-action">
+                            <i class="fas fa-sliders-h me-3"></i>Cài đặt
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" onclick="moModalDoiMatKhau(); $('#modal-quan-tri').modal('hide');">
+                            <i class="fas fa-key me-3"></i>Đổi mật khẩu
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action text-danger" onclick="dangXuat(); $('#modal-quan-tri').modal('hide');">
+                            <i class="fas fa-sign-out-alt me-3"></i>Đăng xuất
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Global Settings JS - Phải load trước -->
+    <script src="{{ url_for('static', filename='js/global_settings.js') }}"></script>
+    
+    <!-- Google Calendar JS - Load cho tất cả trang -->
+    <script src="{{ url_for('static', filename='js/google_calendar.js') }}"></script>
+    
+    <!-- JavaScript tùy chỉnh -->
+    <script>
+        // Kiểm tra đăng nhập và load thông tin người dùng
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load thông tin người dùng
+            layThongTinNguoiDung();
+            
+            // Đánh dấu trang active cho cả desktop và mobile nav
+            const duong_dan_hien_tai = window.location.pathname;
+            
+            // Xóa tất cả class active cũ
+            document.querySelectorAll('.nav-link, .nav-item a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Đánh dấu active cho desktop nav
+            document.querySelectorAll('.navbar-nav .nav-link').forEach(lien_ket => {
+                if (lien_ket.getAttribute('href') === duong_dan_hien_tai) {
+                    lien_ket.classList.add('active');
+                }
+            });
+            
+            // Đánh dấu active cho mobile bottom nav
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(lien_ket => {
+                if (lien_ket.getAttribute('href') === duong_dan_hien_tai) {
+                    lien_ket.classList.add('active');
+                }
+            });
+        });
+        
+        // Load thông tin người dùng
+        async function layThongTinNguoiDung() {
+            try {
+                const response = await fetch('/api/kiem-tra-dang-nhap');
+                const result = await response.json();
+                
+                if (result.da_dang_nhap && result.nguoi_dung) {
+                    // Đã đăng nhập, không cần hiển thị tên người dùng
+                    console.log('Đã đăng nhập:', result.nguoi_dung.ten_hien_thi);
+                } else {
+                    // Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
+                    window.location.href = '/dang-nhap';
+                }
+            } catch (error) {
+                console.error('Lỗi kiểm tra đăng nhập:', error);
+            }
+        }
+        
+        // Đăng xuất
+        async function dangXuat() {
+            if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                try {
+                    const response = await fetch('/api/dang-xuat', {
+                        method: 'POST'
+                    });
+                    const result = await response.json();
+                    
+                    if (result.thanh_cong) {
+                        hien_thi_thong_bao('Đã đăng xuất thành công', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/dang-nhap';
+                        }, 1000);
+                    } else {
+                        hien_thi_thong_bao(result.loi, 'error');
+                    }
+                } catch (error) {
+                    hien_thi_thong_bao('Có lỗi khi đăng xuất', 'error');
+                }
+            }
+        }
+        
+        // Modal đổi mật khẩu
+        function moModalDoiMatKhau() {
+            // Tạo modal đổi mật khẩu động
+            const modalHtml = `
+                <div class="modal fade" id="modalDoiMatKhau" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-key me-2"></i>Đổi Mật Khẩu
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="formDoiMatKhau">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mật khẩu hiện tại</label>
+                                        <input type="password" class="form-control" name="mat_khau_cu" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Mật khẩu mới</label>
+                                        <input type="password" class="form-control" name="mat_khau_moi" required minlength="6">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Xác nhận mật khẩu mới</label>
+                                        <input type="password" class="form-control" name="xac_nhan_mat_khau" required minlength="6">
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                <button type="button" class="btn btn-primary" onclick="luuMatKhauMoi()">
+                                    <i class="fas fa-save me-1"></i>Lưu
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Thêm modal vào DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Hiển thị modal
+            const modal = new bootstrap.Modal(document.getElementById('modalDoiMatKhau'));
+            modal.show();
+            
+            // Xóa modal khi đóng
+            document.getElementById('modalDoiMatKhau').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+            });
+        }
+        
+        // Lưu mật khẩu mới
+        async function luuMatKhauMoi() {
+            const form = document.getElementById('formDoiMatKhau');
+            const formData = new FormData(form);
+            
+            const data = {
+                mat_khau_cu: formData.get('mat_khau_cu'),
+                mat_khau_moi: formData.get('mat_khau_moi'),
+                xac_nhan_mat_khau: formData.get('xac_nhan_mat_khau')
+            };
+            
+            try {
+                const response = await fetch('/api/doi-mat-khau', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.thanh_cong) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalDoiMatKhau')).hide();
+                    hien_thi_thong_bao('Đã đổi mật khẩu thành công!', 'success');
+                } else {
+                    hien_thi_thong_bao(result.loi, 'error');
+                }
+            } catch (error) {
+                hien_thi_thong_bao('Có lỗi xảy ra', 'error');
+            }
+        }
+        
+        // Toast notification function
+        function hien_thi_thong_bao(thong_bao, loai = 'success') {
+            const toast_html = `
+                <div class="toast align-items-center text-white bg-${loai === 'error' ? 'danger' : 'success'} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${thong_bao}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            
+            // Tạo container nếu chưa có
+            let toast_container = document.getElementById('toast-container');
+            if (!toast_container) {
+                toast_container = document.createElement('div');
+                toast_container.id = 'toast-container';
+                toast_container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toast_container.style.zIndex = '9999';
+                document.body.appendChild(toast_container);
+            }
+            
+            // Thêm toast
+            const toast_element = document.createElement('div');
+            toast_element.innerHTML = toast_html;
+            toast_container.appendChild(toast_element.firstElementChild);
+            
+            // Hiển thị toast
+            const toast = new bootstrap.Toast(toast_container.lastElementChild);
+            toast.show();
+            
+            // Xóa toast sau khi ẩn
+            toast_container.lastElementChild.addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+        }
+        
+        // PWA Installation
+        let deferredPrompt;
+        let installButton = null;
+        
+        // Lắng nghe sự kiện beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('PWA có thể được cài đặt');
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Hiển thị nút cài đặt PWA
+            showInstallButton();
+        });
+        
+        // Hiển thị nút cài đặt PWA
+        function showInstallButton() {
+            if (installButton) return; // Đã có nút rồi
+            
+            installButton = document.createElement('button');
+            installButton.innerHTML = '<i class="fas fa-download me-2"></i>Cài đặt App';
+            installButton.className = 'btn btn-primary btn-sm position-fixed';
+            installButton.style.cssText = `
+                top: 80px;
+                right: 20px;
+                z-index: 1050;
+                border-radius: 25px;
+                padding: 8px 16px;
+                font-size: 14px;
+                box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+                animation: pulse 2s infinite;
+            `;
+            
+            // CSS animation cho nút
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0% { box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3); }
+                    50% { box-shadow: 0 6px 20px rgba(13, 110, 253, 0.5); }
+                    100% { box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            installButton.addEventListener('click', installPWA);
+            document.body.appendChild(installButton);
+            
+            // Ẩn nút sau 10 giây nếu không bấm
+            setTimeout(() => {
+                if (installButton && installButton.parentNode) {
+                    installButton.style.animation = 'fadeOut 0.5s ease-out forwards';
+                    setTimeout(() => installButton.remove(), 500);
+                }
+            }, 10000);
+        }
+        
+        // Cài đặt PWA
+        async function installPWA() {
+            if (!deferredPrompt) return;
+            
+            try {
+                // Hiển thị prompt cài đặt
+                deferredPrompt.prompt();
+                
+                // Đợi phản hồi từ người dùng
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('PWA đã được cài đặt');
+                    hien_thi_thong_bao('🎉 App đã được cài đặt thành công!', 'success');
+                } else {
+                    console.log('Người dùng từ chối cài đặt PWA');
+                }
+                
+                // Xóa nút cài đặt
+                if (installButton) {
+                    installButton.remove();
+                    installButton = null;
+                }
+                
+                deferredPrompt = null;
+            } catch (error) {
+                console.error('Lỗi cài đặt PWA:', error);
+            }
+        }
+        
+        // Kiểm tra PWA đã được cài đặt chưa
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA đã được cài đặt');
+            hien_thi_thong_bao('🎉 App đã sẵn sàng sử dụng!', 'success');
+            
+            if (installButton) {
+                installButton.remove();
+                installButton = null;
+            }
+        });
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/static/sw.js');
+                    console.log('SW đã đăng ký thành công:', registration.scope);
+                    
+                    // Kiểm tra updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // Có phiên bản mới
+                                showUpdateAvailable();
+                            }
+                        });
+                    });
+                } catch (error) {
+                    console.log('SW đăng ký thất bại:', error);
+                }
+            });
+        }
+        
+        // Hiển thị thông báo cập nhật
+        function showUpdateAvailable() {
+            const updateHTML = `
+                <div class="alert alert-info alert-dismissible fade show position-fixed" style="top: 20px; left: 50%; transform: translateX(-50%); z-index: 1055; min-width: 300px;">
+                    <i class="fas fa-sync-alt me-2"></i>
+                    <strong>Có phiên bản mới!</strong>
+                    <button type="button" class="btn btn-sm btn-outline-info ms-2" onclick="window.location.reload()">
+                        Cập nhật
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('afterbegin', updateHTML);
+        }
+        
+        // Kiểm tra trạng thái online/offline
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                console.log('Đã kết nối internet');
+                document.body.classList.remove('offline');
+            } else {
+                console.log('Mất kết nối internet');
+                document.body.classList.add('offline');
+                hien_thi_thong_bao('⚠️ Bạn đang offline. Một số tính năng có thể không hoạt động.', 'warning');
+            }
+        }
+        
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        
+        // CSS cho trạng thái offline
+        const offlineStyle = document.createElement('style');
+        offlineStyle.textContent = `
+            .offline {
+                filter: grayscale(20%);
+            }
+            .offline::after {
+                content: "📵 Offline";
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                background: rgba(220, 53, 69, 0.9);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                z-index: 9999;
+            }
+        `;
+        document.head.appendChild(offlineStyle);
+        
+        // Simple PWA behaviors for iOS
+        function initPWABehaviors() {
+            // Detect if running as PWA
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                         window.navigator.standalone === true;
+                         
+            if (isPWA) {
+                console.log('Đang chạy như PWA');
+                document.body.classList.add('pwa-mode');
+            }
+            
+            // Prevent zoom on double tap for touch devices
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+        }
+        
+        // Init PWA behaviors when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPWABehaviors);
+        } else {
+            initPWABehaviors();
+        }
+    </script>
+    
+    <!-- iOS Fixes -->
+    <script src="{{ url_for('static', filename='js/ios_fixes.js') }}"></script>
+    
+    <!-- Modal Fix cho mobile -->
+    <script src="{{ url_for('static', filename='js/modal_fix.js') }}"></script>
+    
+    {% block javascript %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

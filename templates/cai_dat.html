@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block tieu_de %}Quản Lý Danh Mục{% endblock %}
+
+{% block noi_dung %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 text-primary">
+                        <i class="fas fa-tags me-2"></i>
+                        Quản Lý Danh Mục
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cài đặt -->
+    <div class="row g-4">
+        <!-- Quản lý danh mục thu chi -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-tags me-2"></i>
+                        Quản Lý Danh Mục Thu Chi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Tabs cho Thu và Chi -->
+                    <ul class="nav nav-tabs mb-3" id="danh-muc-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="danh-muc-thu-tab" data-bs-toggle="tab" data-bs-target="#danh-muc-thu" type="button">
+                                <i class="fas fa-plus-circle text-success me-1"></i>Danh Mục Thu
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="danh-muc-chi-tab" data-bs-toggle="tab" data-bs-target="#danh-muc-chi" type="button">
+                                <i class="fas fa-minus-circle text-danger me-1"></i>Danh Mục Chi
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab content -->
+                    <div class="tab-content" id="danh-muc-tab-content">
+                        <!-- Tab Danh mục Thu -->
+                        <div class="tab-pane fade" id="danh-muc-thu" role="tabpanel" aria-labelledby="danh-muc-thu-tab">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h6>Thêm danh mục thu mới</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">Chọn emoji</label>
+                                        <div id="emoji-picker-thu-container"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Tên danh mục</label>
+                                        <input type="text" class="form-control" id="ten-danh-muc-thu" placeholder="VD: Lương, Thưởng...">
+                                    </div>
+                                    <button class="btn btn-success w-100" type="button" onclick="them_danh_muc('thu')">
+                                        <i class="fas fa-plus me-1"></i>Thêm danh mục
+                                    </button>
+                                </div>
+                                <div class="col-md-8">
+                                    <h6>Danh sách danh mục thu</h6>
+                                    <div id="danh-sach-thu" class="list-group">
+                                        <!-- Sẽ được load bằng JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab Danh mục Chi -->
+                        <div class="tab-pane fade show active" id="danh-muc-chi" role="tabpanel" aria-labelledby="danh-muc-chi-tab">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <h6>Thêm danh mục chi mới</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">Chọn emoji</label>
+                                        <div id="emoji-picker-chi-container"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Tên danh mục</label>
+                                        <input type="text" class="form-control" id="ten-danh-muc-chi" placeholder="VD: Ăn sáng, Xăng xe...">
+                                    </div>
+                                    <button class="btn btn-danger w-100" type="button" onclick="them_danh_muc('chi')">
+                                        <i class="fas fa-plus me-1"></i>Thêm danh mục
+                                    </button>
+                                </div>
+                                <div class="col-md-8">
+                                    <h6>Danh sách danh mục chi</h6>
+                                    <div id="danh-sach-chi" class="list-group">
+                                        <!-- Sẽ được load bằng JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cài đặt tiền tệ -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-yen-sign me-2"></i>
+                        Cài Đặt Tiền Tệ
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn vị tiền tệ chính</label>
+                            <select class="form-control" id="don-vi-tien-te">
+                                <option value="VND">🇻🇳 Việt Nam Đồng (VND)</option>
+                                <option value="JPY">🇯🇵 Yên Nhật (JPY)</option>
+                                <option value="USD">🇺🇸 Đô la Mỹ (USD)</option>
+                                <option value="EUR">🇪🇺 Euro (EUR)</option>
+                            </select>
+                            <small class="form-text text-muted">Đơn vị tiền tệ sẽ được sử dụng trong trang Thu Chi và Dashboard</small>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="row g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label">Định dạng hiển thị</label>
+                                    <select class="form-control" id="dinh-dang-tien">
+                                        <option value="standard">Chuẩn (1,000)</option>
+                                        <option value="short">Rút gọn (1K)</option>
+                                        <option value="full">Đầy đủ (1,000.00)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label class="form-label">Hiển thị ký hiệu</label>
+                                    <select class="form-control" id="hien-thi-ky-hieu">
+                                        <option value="prefix">Trước số (¥1,000)</option>
+                                        <option value="suffix">Sau số (1,000¥)</option>
+                                        <option value="both">Cả hai (¥1,000 JPY)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label">Xem trước</label>
+                                    <div class="form-control-plaintext bg-light rounded p-2">
+                                        <span id="xem-truoc-tien">¥1,000</span>
+                                        <small class="text-muted ms-2">(Ví dụ: 1000 đơn vị)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-primary" onclick="luu_cai_dat_tien_te()">
+                                    <i class="fas fa-save me-1"></i>Lưu Cài Đặt
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="tai_cai_dat_tien_te()">
+                                    <i class="fas fa-undo me-1"></i>Khôi Phục
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast thông báo -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toast-cai-dat" class="toast hide" role="alert">
+        <div class="toast-header">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            <strong class="me-auto">Cài đặt</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toast-message">
+            Đã lưu cài đặt thành công!
+        </div>
+    </div>
+</div>
+
+<!-- Custom CSS cho emoji picker -->
+<style>
+    /* Làm đẹp dropdown emoji */
+    #emoji-thu option, #emoji-chi option {
+        font-size: 16px;
+        padding: 8px 12px;
+    }
+    
+    /* Hover effect cho list group items */
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    /* Style cho emoji trong list */
+    .list-group-item span:first-child {
+        font-size: 18px;
+        margin-right: 8px;
+    }
+    
+    /* Button group styling */
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Tab content spacing */
+    .tab-content {
+        padding-top: 15px;
+    }
+    
+    /* Đảm bảo tab pane hoạt động đúng */
+    .tab-pane {
+        display: none !important;
+    }
+    
+    .tab-pane.show.active {
+        display: block !important;
+    }
+    
+    /* Form controls trong tabs */
+    .tab-pane .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    /* Responsive cho mobile */
+    @media (max-width: 767px) {
+        .tab-content .row .col-md-4,
+        .tab-content .row .col-md-8 {
+            margin-bottom: 1rem;
+        }
+    }
+    
+    /* Emoji Picker Styles */
+    .emoji-picker {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+    }
+    
+    .emoji-btn {
+        transition: all 0.2s ease;
+        border-radius: 6px !important;
+        margin: 2px;
+    }
+    
+    .emoji-btn:hover {
+        background-color: #e9ecef !important;
+        transform: scale(1.1);
+    }
+    
+    .emoji-btn.active {
+        background-color: #0d6efd !important;
+        color: white !important;
+        transform: scale(1.1);
+    }
+    
+    .emoji-category h6 {
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    
+    .emoji-row {
+        gap: 4px;
+        margin-bottom: 12px;
+    }
+</style>
+
+<script src="{{ url_for('static', filename='js/quan_ly_danh_muc.js') }}"></script>
+<script src="{{ url_for('static', filename='js/emoji_picker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tien_te.js') }}"></script>
+
+<script>
+// Đảm bảo Bootstrap tabs hoạt động đúng
+document.addEventListener('DOMContentLoaded', function() {
+    // Khởi tạo Bootstrap tabs
+    const triggerTabList = [].slice.call(document.querySelectorAll('#danh-muc-tabs button'))
+    triggerTabList.map(function (triggerEl) {
+        return new bootstrap.Tab(triggerEl)
+    });
+    
+    // Đảm bảo chỉ tab active được hiển thị
+    const allTabPanes = document.querySelectorAll('.tab-pane');
+    const activeTabPane = document.querySelector('.tab-pane.show.active');
+    
+    allTabPanes.forEach(pane => {
+        if (pane !== activeTabPane) {
+            pane.classList.remove('show', 'active');
+        }
+    });
+    
+    // Thêm event listener cho tab change
+    document.addEventListener('shown.bs.tab', function (event) {
+        // Ẩn tất cả tab panes
+        allTabPanes.forEach(pane => {
+            pane.classList.remove('show', 'active');
+        });
+        
+        // Hiển thị tab được chọn
+        const targetId = event.target.getAttribute('data-bs-target');
+        const targetPane = document.querySelector(targetId);
+        if (targetPane) {
+            targetPane.classList.add('show', 'active');
+        }
+    });
+});
+</script>
+{% endblock %}

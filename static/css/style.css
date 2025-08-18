@@ -1,0 +1,2246 @@
+/* CSS tùy chỉnh cho ứng dụng Quản Lý Cá Nhân */
+
+/* =====================
+   PWA & iOS SAFE AREAS
+   ===================== */
+
+/* PWA Fullscreen support cho iOS */
+@supports (padding: max(0px)) {
+    /* Only apply safe area insets on mobile devices */
+    @media (max-width: 768px) {
+        body {
+            padding-top: max(env(safe-area-inset-top), 0px);
+            padding-left: max(env(safe-area-inset-left), 0px);
+            padding-right: max(env(safe-area-inset-right), 0px);
+            padding-bottom: max(calc(env(safe-area-inset-bottom) + 85px), 85px); /* Tăng thêm 5px */
+        }
+        
+        /* Navbar adaptation for notch */
+        .navbar {
+            padding-top: calc(0.375rem + max(env(safe-area-inset-top), 0px));
+            padding-left: max(env(safe-area-inset-left), 0px);
+            padding-right: max(env(safe-area-inset-right), 0px);
+            max-height: calc(56px + max(env(safe-area-inset-top), 0px)) !important;
+        }
+        
+        /* Bottom navigation adaptation for iOS */
+        .bottom-nav {
+            padding-bottom: calc(6px + max(env(safe-area-inset-bottom), 0px)) !important;
+            padding-left: max(env(safe-area-inset-left), 0px);
+            padding-right: max(env(safe-area-inset-right), 0px);
+            height: calc(80px + max(env(safe-area-inset-bottom), 0px)) !important;
+            max-height: calc(85px + max(env(safe-area-inset-bottom), 0px)) !important;
+            /* iOS specific fixes */
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+    }
+}
+
+/* Prevent zoom and scrolling on iOS */
+html {
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    /* iOS specific improvements */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    /* iOS specific improvements */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Allow text selection for inputs and content areas */
+input, textarea, .form-control, .form-select, 
+.content-area, .card-body, .table {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* iOS button improvements */
+button, .btn, input[type="submit"], input[type="button"] {
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+    /* Better touch feedback on iOS */
+    cursor: pointer;
+}
+
+/* iOS link improvements */
+a {
+    -webkit-tap-highlight-color: rgba(0, 123, 255, 0.2);
+    touch-action: manipulation;
+}
+
+/* iOS PWA specific styles */
+@media (display-mode: standalone) {
+    /* Hide browser UI elements */
+    body {
+        -webkit-app-region: no-drag;
+    }
+    
+    /* Adjust for status bar */
+    .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 1030;
+    }
+    
+    /* Remove problematic height constraints */
+    .main-content {
+        min-height: auto;
+    }
+    
+    /* Remove fixed height and overflow constraints that cause issues */
+    .container-fluid {
+        height: auto !important;
+        overflow: visible !important;
+    }
+}
+
+/* PWA mode specific styles */
+.pwa-mode .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+/* Ngăn horizontal scroll trong PWA mode */
+.pwa-mode {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
+
+.pwa-mode .container-fluid {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+
+.pwa-mode .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    overflow-x: hidden !important;
+}
+
+.pwa-mode .table-responsive {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+/* Normal body padding for mobile */
+@media (max-width: 768px) {
+    body {
+        padding-bottom: 80px !important; /* Giảm từ 75px xuống 80px để phù hợp với bottom nav */
+        overflow-x: hidden !important; /* Ngăn horizontal scroll */
+        max-width: 100vw !important;
+    }
+    
+    /* iOS specific body improvements */
+    .ios-device body {
+        -webkit-text-size-adjust: 100%;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Better scrolling on iOS */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* PWA mode improvements */
+    .pwa-mode body {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+}
+
+/* iOS specific viewport height fixes */
+.ios-device {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+}
+
+/* iOS input styling fixes */
+.ios-device input,
+.ios-device textarea,
+.ios-device select,
+.ios-device .form-control,
+.ios-device .form-select {
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 8px !important;
+    font-size: 16px !important; /* Prevent zoom on focus */
+}
+
+/* iOS button improvements */
+.ios-device button,
+.ios-device .btn {
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 8px !important;
+    min-height: 44px; /* iOS recommended touch target */
+    font-size: 16px !important;
+    font-weight: 500;
+    /* Better touch feedback */
+    transition: all 0.1s ease;
+}
+
+.ios-device .btn:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+/* Disable pull-to-refresh */
+body {
+    overscroll-behavior-y: contain;
+}
+
+/* =====================
+   VARIABLES & GLOBALS 
+   ===================== */
+:root {
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    --transition: all 0.3s ease;
+}
+
+/* =====================
+   FONT SIZE SETTINGS
+   ===================== */
+
+/* Font size classes */
+.font-small {
+    font-size: 0.875rem;
+}
+
+.font-small h1 { font-size: 1.5rem; }
+.font-small h2 { font-size: 1.25rem; }
+.font-small h3 { font-size: 1.1rem; }
+.font-small h4 { font-size: 1rem; }
+.font-small h5 { font-size: 0.9rem; }
+.font-small .card-title { font-size: 1rem; }
+
+.font-medium {
+    font-size: 1rem; /* Default */
+}
+
+.font-large {
+    font-size: 1.125rem;
+}
+
+.font-large h1 { font-size: 2.5rem; }
+.font-large h2 { font-size: 2rem; }
+.font-large h3 { font-size: 1.75rem; }
+.font-large h4 { font-size: 1.5rem; }
+.font-large h5 { font-size: 1.25rem; }
+.font-large .card-title { font-size: 1.25rem; }
+
+/* =====================
+   GRADIENT CARDS
+   ===================== */
+
+/* CSS cho tabs chính - hiển thị theo hàng ngang (Học tập, Công việc, Ghi chú) */
+#hoc-tap-tabs,
+#cong-viec-tabs,
+#ghi-chu-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden !important; /* Không cho cuộn ngang */
+    justify-content: flex-start !important; /* Căng trái */
+    width: 100%;
+}
+
+#hoc-tap-tabs .nav-item,
+#cong-viec-tabs .nav-item,
+#ghi-chu-tabs .nav-item {
+    flex: 1 1 0; /* Chia đều không gian và cho phép co lại */
+    min-width: 0; /* Quan trọng để text có thể bị truncate */
+    max-width: 33.333%; /* Giới hạn tối đa 1/3 chiều rộng */
+}
+
+#hoc-tap-tabs .nav-link,
+#cong-viec-tabs .nav-link,
+#ghi-chu-tabs .nav-link {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.9rem;
+    border-radius: 6px 6px 0 0;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-align: center;
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+    #hoc-tap-tabs .nav-link,
+    #cong-viec-tabs .nav-link,
+    #ghi-chu-tabs .nav-link {
+        padding: 0.4rem 0.3rem !important;
+        font-size: 0.8rem;
+    }
+    
+    #hoc-tap-tabs .nav-link i,
+    #cong-viec-tabs .nav-link i,
+    #ghi-chu-tabs .nav-link i {
+        margin-right: 0.25rem !important;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    #hoc-tap-tabs .nav-link,
+    #cong-viec-tabs .nav-link,
+    #ghi-chu-tabs .nav-link {
+        padding: 0.3rem 0.2rem !important;
+        font-size: 0.7rem;
+    }
+    
+    /* Thu nhỏ icon trên mobile */
+    #hoc-tap-tabs .nav-link i,
+    #cong-viec-tabs .nav-link i,
+    #ghi-chu-tabs .nav-link i {
+        font-size: 0.6rem;
+        margin-right: 0.15rem !important;
+    }
+    
+    /* Đảm bảo text luôn hiển thị cho tất cả tabs */
+    #hoc-tap-tabs .nav-link span,
+    #cong-viec-tabs .nav-link span,
+    #ghi-chu-tabs .nav-link span {
+        display: inline !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Màn hình rất nhỏ - rút gọn padding và font size hơn nữa */
+    #hoc-tap-tabs .nav-link,
+    #cong-viec-tabs .nav-link,
+    #ghi-chu-tabs .nav-link {
+        padding: 0.25rem 0.1rem !important;
+        font-size: 0.65rem;
+    }
+    
+    #hoc-tap-tabs .nav-link i,
+    #cong-viec-tabs .nav-link i,
+    #ghi-chu-tabs .nav-link i {
+        font-size: 0.55rem;
+        margin-right: 0.1rem !important;
+    }
+}
+
+/* CSS cho thanh tiêu đề navbar trên mobile */
+@media (max-width: 991px) {
+    .navbar {
+        min-height: 56px !important; /* Giới hạn chiều cao như desktop */
+        max-height: 56px !important;
+        padding: 0.5rem 0 !important; /* Padding tiêu chuẩn */
+    }
+    
+    .navbar .container-fluid {
+        justify-content: center !important; /* Căn giữa navbar */
+        padding: 0 1rem;
+        min-height: inherit;
+    }
+    
+    .navbar-brand {
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.25rem 0;
+    }
+    
+    .navbar-brand img {
+        height: 32px !important; /* Kích thước logo vừa phải */
+        max-width: 36px !important;
+    }
+    
+    .navbar-brand .brand-text {
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar {
+        min-height: 50px !important; /* Nhỏ hơn một chút trên mobile nhỏ */
+        max-height: 50px !important;
+        padding: 0.375rem 0 !important;
+    }
+    
+    .navbar-brand img {
+        height: 28px !important;
+        max-width: 32px !important;
+    }
+    
+    .navbar-brand .brand-text {
+        font-size: 1rem;
+    }
+}
+
+/* Ẩn menu desktop trên mobile để thanh tiêu đề được căn giữa hoàn toàn */
+@media (max-width: 991px) {
+    .navbar-nav.d-none.d-lg-flex {
+        display: none !important;
+    }
+}
+
+/* CSS cho màu text của tiêu đề trang và tabs */
+/* Tiêu đề trang chính */
+h1, h2, h3, h4, h5, h6 {
+    color: #212529 !important; /* Màu đen cho tiêu đề */
+}
+
+/* Tiêu đề trang cụ thể */
+.h1, .h2, .h3, .h4, .h5, .h6,
+.text-primary {
+    color: #212529 !important;
+}
+
+/* Tab links màu đen */
+.nav-tabs .nav-link {
+    color: #212529 !important; /* Màu đen cho tab không active */
+    border-color: transparent;
+}
+
+.nav-tabs .nav-link.active {
+    color: #212529 !important; /* Màu đen cho tab active */
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #212529 !important; /* Màu đen khi hover */
+    border-color: #e9ecef #e9ecef #dee2e6;
+}
+
+/* Tab content headings */
+.tab-pane h6,
+.tab-pane .card-title,
+.card-header h5,
+.card-header h6,
+.card-title {
+    color: #212529 !important;
+}
+
+/* Breadcrumb và navigation text */
+.breadcrumb-item,
+.breadcrumb-item a {
+    color: #212529 !important;
+}
+
+/* Labels và form text */
+.form-label,
+.form-text {
+    color: #212529 !important;
+}
+
+/* Page titles và section headers */
+.page-title,
+.section-title,
+.content-header h1,
+.content-header h2 {
+    color: #212529 !important;
+}
+
+/* Đảm bảo tất cả text trong container chính có màu đen */
+.container-fluid h1,
+.container-fluid h2,
+.container-fluid h3,
+.container-fluid h4,
+.container-fluid h5,
+.container-fluid h6 {
+    color: #212529 !important;
+}
+
+/* =====================
+   GRADIENT CARDS
+   ===================== */
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%) !important;
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+}
+
+/* Đảm bảo text trong các thẻ thống kê (dashboard cards) luôn có màu trắng */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-warning,
+.card.bg-info,
+.card.bg-danger,
+.card.text-white,
+.bg-gradient-primary,
+.bg-gradient-success,
+.bg-gradient-danger,
+.bg-gradient-warning,
+.bg-gradient-info {
+    color: white !important;
+}
+
+.card.bg-primary *,
+.card.bg-success *,
+.card.bg-warning *,
+.card.bg-info *,
+.card.bg-danger *,
+.card.text-white *,
+.bg-gradient-primary *,
+.bg-gradient-success *,
+.bg-gradient-danger *,
+.bg-gradient-warning *,
+.bg-gradient-info * {
+    color: white !important;
+}
+
+/* Đặc biệt cho các thẻ thống kê dashboard */
+.card-body h1,
+.card-body h2,
+.card-body h3,
+.card-body h4,
+.card-body h5,
+.card-body h6,
+.card-body p,
+.card-body span,
+.card-body small,
+.card-body div {
+    color: inherit !important;
+}
+
+/* Hover effects cho cards */
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+
+/* Map container styles */
+#ban-do-chi-tieu {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Reset & Base */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--dark-color);
+    background-color: #f5f5f5;
+}
+
+/* =====================
+   LAYOUT & NAVIGATION
+   ===================== */
+
+/* Navbar customization */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    transition: var(--transition);
+    border-radius: var(--border-radius);
+    margin: 0 2px;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255,255,255,0.1);
+    transform: translateY(-1px);
+}
+
+.navbar-nav .nav-link.active {
+    background-color: rgba(255,255,255,0.2);
+    color: white !important;
+}
+
+/* Bottom navigation for mobile */
+.bottom-nav {
+    background: rgba(255, 255, 255, 0.95);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    padding: 6px 0; /* Tăng padding để dễ nhấn hơn */
+    height: 80px;
+    max-height: 80px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 9999 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    overflow: hidden !important;
+    /* iOS specific improvements */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: auto;
+    /* Better touch handling */
+    touch-action: manipulation;
+}
+
+/* Override mọi CSS có thể conflict với bottom nav */
+nav.navbar.fixed-bottom.bottom-nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 9999 !important;
+    height: 80px !important;
+    max-height: 80px !important;
+    min-height: 80px !important;
+    transform: translateZ(0) !important;
+    overflow: hidden !important;
+    /* iOS safe area support */
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
+}
+
+/* Đảm bảo nav items có touch target đủ lớn cho iOS */
+.bottom-nav .nav-item,
+.bottom-nav .nav-item:hover,
+.bottom-nav .nav-item.active,
+.bottom-nav a,
+.bottom-nav a:hover,
+.bottom-nav a.active {
+    /* Better touch handling */
+    -webkit-tap-highlight-color: rgba(0, 123, 255, 0.2);
+    touch-action: manipulation;
+    cursor: pointer;
+    /* Improve performance */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+.bottom-nav .nav-item {
+    padding: 8px 4px !important; /* Tăng padding để dễ nhấn */
+    transition: all 0.2s ease !important;
+    border-radius: var(--border-radius);
+    height: 70px !important; /* Giảm xuống để có padding */
+    max-height: 70px !important;
+    overflow: hidden !important;
+    /* Better touch target */
+    min-width: 44px; /* iOS recommended minimum touch target */
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottom-nav .nav-item:hover {
+    background-color: var(--light-color);
+    transform: none !important; /* Giữ vị trí cố định */
+}
+
+.bottom-nav .nav-item.active {
+    color: var(--primary-color) !important;
+    background-color: rgba(13, 110, 253, 0.1);
+    transform: none !important; /* Giữ vị trí cố định */
+}
+
+/* Better icon and text styling for bottom nav */
+.bottom-nav .nav-item i {
+    font-size: 1.1rem;
+    margin-bottom: 2px;
+    transition: all 0.2s ease;
+}
+
+.bottom-nav .nav-item small {
+    font-size: 0.7rem;
+    font-weight: 500;
+    line-height: 1;
+    text-align: center;
+}
+
+/* Active state enhancements */
+.bottom-nav .nav-item.active i {
+    transform: scale(1.1);
+    color: var(--primary-color) !important;
+}
+
+.bottom-nav .nav-item.active small {
+    color: var(--primary-color) !important;
+    font-weight: 600;
+}
+
+/* =====================
+   CARDS & COMPONENTS
+   ===================== */
+
+/* Card styling */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+/* Ghi đè Bootstrap hover mặc định */
+.card:hover {
+    transform: none !important;
+    box-shadow: var(--box-shadow) !important;
+}
+
+/* Chỉ card có thể click mới có hover effect */
+.card.clickable:hover,
+.card[onclick]:hover,
+.card[data-bs-toggle]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    cursor: pointer;
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--light-color) 0%, #e9ecef 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-weight: 600;
+}
+
+/* Statistic cards */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-warning,
+.card.bg-info,
+.card.bg-danger {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #0856d0 100%) !important;
+}
+
+.card.bg-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, #146c43 100%) !important;
+}
+
+.card.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #ffcd39 100%) !important;
+}
+
+.card.bg-info {
+    background: linear-gradient(135deg, var(--info-color) 0%, #3dd5f3 100%) !important;
+}
+
+.card.bg-danger {
+    background: linear-gradient(135deg, var(--danger-color) 0%, #b02a37 100%) !important;
+}
+
+/* =====================
+   FORMS & INPUTS
+   ===================== */
+
+/* Form controls */
+.form-control,
+.form-select {
+    border-radius: var(--border-radius);
+    border: 2px solid #e9ecef;
+    transition: var(--transition);
+    font-size: 0.95rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    transform: translateY(-1px);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+}
+
+/* Input groups */
+.input-group-text {
+    background-color: var(--light-color);
+    border: 2px solid #e9ecef;
+    border-right: none;
+    color: #6c757d;
+}
+
+/* =====================
+   BUTTONS
+   ===================== */
+
+/* Button styling */
+.btn {
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    padding: 0.5rem 1.2rem;
+    transition: var(--transition);
+    border: 2px solid transparent;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Button variants */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #0856d0 100%);
+    border-color: var(--primary-color);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, #146c43 100%);
+    border-color: var(--success-color);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #ffcd39 100%);
+    border-color: var(--warning-color);
+    color: var(--dark-color);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, var(--info-color) 0%, #3dd5f3 100%);
+    border-color: var(--info-color);
+    color: var(--dark-color);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color) 0%, #b02a37 100%);
+    border-color: var(--danger-color);
+}
+
+/* Outline buttons */
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-warning:hover,
+.btn-outline-info:hover,
+.btn-outline-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* =====================
+   TABLES
+   ===================== */
+
+/* Table styling */
+.table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    background: white;
+    box-shadow: var(--box-shadow);
+}
+
+.table thead th {
+    background-color: #f1f3f4 !important;
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    color: #495057;
+}
+
+.table-light th {
+    background-color: #f1f3f4 !important;
+    color: #495057;
+}
+
+/* Ghi đè Bootstrap hover mặc định cho table */
+.table tbody tr:hover {
+    background-color: transparent !important;
+    transform: none !important;
+}
+
+/* Chỉ các hàng có thể click mới có hover effect */
+.table tbody tr.clickable:hover,
+.table tbody tr[onclick]:hover,
+.table tbody tr[data-bs-toggle]:hover,
+.table tbody tr.selectable:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+    transform: scale(1.005);
+    cursor: pointer;
+}
+
+.table-responsive {
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+/* Mobile-specific table improvements */
+@media (max-width: 768px) {
+    .table-responsive table {
+        font-size: 0.85rem;
+    }
+    
+    .table-responsive th,
+    .table-responsive td {
+        padding: 0.5rem 0.25rem;
+        white-space: nowrap;
+    }
+    
+    /* Make number columns more compact on mobile */
+    .table-responsive .text-center,
+    .table-responsive .text-end {
+        min-width: 60px;
+    }
+    
+    /* Responsive table headers */
+    .table-responsive thead th {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+}
+
+/* =====================
+   MODALS
+   ===================== */
+
+/* Modal styling */
+.modal-content {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--light-color) 0%, #e9ecef 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.modal-title {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0,0,0,0.05);
+    background-color: #fafafa;
+}
+
+/* =====================
+   BADGES & ALERTS
+   ===================== */
+
+/* Badge styling */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+    border-radius: 50px;
+}
+
+/* Alert styling */
+.alert {
+    border: none;
+    border-radius: var(--border-radius);
+    border-left: 4px solid;
+}
+
+.alert-success {
+    border-left-color: var(--success-color);
+    background: linear-gradient(135deg, #d1e7dd 0%, #a3d9a4 100%);
+}
+
+.alert-danger {
+    border-left-color: var(--danger-color);
+    background: linear-gradient(135deg, #f8d7da 0%, #f1aeb5 100%);
+}
+
+.alert-warning {
+    border-left-color: var(--warning-color);
+    background: linear-gradient(135deg, #fff3cd 0%, #ffda6a 100%);
+}
+
+.alert-info {
+    border-left-color: var(--info-color);
+    background: linear-gradient(135deg, #d1ecf1 0%, #9eeaf9 100%);
+}
+
+/* =====================
+   ANIMATIONS
+   ===================== */
+
+/* Fade in animation */
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Pulse animation for loading */
+.pulse {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Bounce animation */
+.bounce {
+    animation: bounce 0.5s ease-in-out;
+}
+
+@keyframes bounce {
+    0%, 20%, 60%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    80% { transform: translateY(-5px); }
+}
+
+/* =====================
+   HOC TAP - STUDY MODULE
+   ===================== */
+
+/* Card styles for bài tập */
+.bai-tap-card {
+    border-left: 4px solid #007bff;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.bai-tap-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.bai-tap-card.chua-lam {
+    border-left-color: #dc3545;
+}
+
+.bai-tap-card.dang-lam {
+    border-left-color: #ffc107;
+}
+
+.bai-tap-card.hoan-thanh {
+    border-left-color: #28a745;
+}
+
+/* Dropdown trạng thái */
+.dropdown-toggle-status {
+    border: none;
+    background: none;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    border-radius: 20px;
+    min-width: 90px;
+    text-align: center;
+    font-weight: 500;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.dropdown-toggle-status:after {
+    margin-left: 0.5em;
+    font-size: 0.7rem;
+}
+
+.dropdown-toggle-status.chua-lam {
+    background-color: #dc3545;
+    color: white;
+    border: 2px solid #dc3545;
+}
+
+.dropdown-toggle-status.chua-lam:hover {
+    background-color: #c82333;
+    border-color: #c82333;
+    transform: translateY(-1px);
+}
+
+.dropdown-toggle-status.dang-lam {
+    background-color: #ffc107;
+    color: #212529;
+    border: 2px solid #ffc107;
+}
+
+.dropdown-toggle-status.dang-lam:hover {
+    background-color: #e0a800;
+    border-color: #e0a800;
+    transform: translateY(-1px);
+}
+
+.dropdown-toggle-status.hoan-thanh {
+    background-color: #28a745;
+    color: white;
+    border: 2px solid #28a745;
+}
+
+.dropdown-toggle-status.hoan-thanh:hover {
+    background-color: #218838;
+    border-color: #218838;
+    transform: translateY(-1px);
+}
+
+.dropdown-menu-status {
+    min-width: 130px;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 8px 0;
+    animation: fadeIn 0.2s ease;
+}
+
+.dropdown-item-status {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 6px;
+    margin: 2px 8px;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item-status:hover {
+    background-color: #f8f9fa;
+    transform: translateX(4px);
+}
+
+.dropdown-item-status i {
+    width: 18px;
+    margin-right: 8px;
+}
+
+.dropdown-item-status.chua-lam i {
+    color: #dc3545;
+}
+
+.dropdown-item-status.dang-lam i {
+    color: #ffc107;
+}
+
+.dropdown-item-status.hoan-thanh i {
+    color: #28a745;
+}
+
+/* Dark theme cho dropdown */
+body.theme-dark .dropdown-menu-status {
+    background-color: #2d3748;
+    border-color: #4a5568;
+}
+
+body.theme-dark .dropdown-item-status {
+    color: #e9ecef;
+}
+
+body.theme-dark .dropdown-item-status:hover {
+    background-color: #4a5568;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dropdown-toggle-status {
+        min-width: 80px;
+        font-size: 0.8rem;
+        padding: 3px 10px;
+    }
+    
+    .dropdown-menu-status {
+        min-width: 110px;
+    }
+    
+    .dropdown-item-status {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+/* =====================
+   CALENDAR SPECIFIC
+   ===================== */
+
+/* Calendar table */
+.calendar-table {
+    font-size: 0.9rem;
+}
+
+.calendar-day {
+    height: 100px;
+    vertical-align: top;
+    position: relative;
+    transition: var(--transition);
+    border: 1px solid #e9ecef;
+}
+
+/* Chỉ calendar day có thể click mới có hover */
+.calendar-day.clickable:hover,
+.calendar-day[onclick]:hover,
+.calendar-day[data-bs-toggle]:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+    transform: scale(1.02);
+    cursor: pointer;
+}
+
+.calendar-day.other-month {
+    color: #adb5bd;
+    background-color: #f8f9fa;
+}
+
+.calendar-day.today {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffda6a 100%);
+    border: 2px solid var(--warning-color);
+    font-weight: 600;
+}
+
+.date-number {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-size: 1rem;
+}
+
+.work-events,
+.study-events {
+    font-size: 0.75rem;
+}
+
+.work-event {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #ffcd39 100%);
+    color: var(--dark-color);
+    padding: 2px 4px;
+    margin: 1px 0;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.study-event {
+    background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
+    color: white;
+    padding: 2px 4px;
+    margin: 1px 0;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* =====================
+   RESPONSIVE DESIGN
+   ===================== */
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    html {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+        height: 100vh !important; /* Giới hạn chiều cao viewport */
+    }
+    
+    body {
+        padding-bottom: 90px; /* Tăng từ 70px lên 90px để khớp với nav height mới */
+        overflow-x: hidden !important; /* Ngăn horizontal scroll */
+        max-width: 100vw !important;
+        overflow-y: auto !important; /* Cho phép scroll dọc cho nội dung */
+        max-height: 100vh !important; /* Giới hạn chiều cao viewport */
+        box-sizing: border-box !important; /* Đảm bảo padding được tính trong kích thước */
+    }
+    
+    /* Đảm bảo tất cả containers không gây overflow */
+    .container-fluid,
+    .container,
+    .row,
+    .col {
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Đảm bảo cards và components không vượt quá */
+    .card,
+    .table-responsive,
+    .nav,
+    .navbar-nav {
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    html {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
+    
+    /* Đảm bảo main content không bị margin quá nhiều */
+    main, .main-content {
+        margin-top: 0 !important;
+        padding-top: 1rem;
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+    }
+    
+    .container-fluid {
+        padding: 0.5rem;
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+    }
+    
+    .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        overflow-x: hidden !important;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+    }
+    
+    .table-responsive {
+        font-size: 0.85rem;
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+    }
+    
+    .btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .calendar-day {
+        height: 60px;
+        font-size: 0.8rem;
+    }
+    
+    .date-number {
+        font-size: 0.9rem;
+    }
+}
+
+/* Large screens */
+@media (min-width: 1200px) {
+    .container-fluid {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+}
+
+/* =====================
+   UTILITY CLASSES
+   ===================== */
+
+/* Override Bootstrap hover effects */
+.table-hover tbody tr:hover {
+    background-color: transparent !important;
+}
+
+.card-body:hover,
+.card-header:hover,
+.card-footer:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Spacing utilities */
+.mt-auto { margin-top: auto !important; }
+.mb-auto { margin-bottom: auto !important; }
+
+/* Interactive utilities */
+.clickable {
+    cursor: pointer !important;
+}
+
+.hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.hover-scale:hover {
+    transform: scale(1.02);
+}
+
+.hover-glow:hover {
+    box-shadow: 0 0 20px rgba(13, 110, 253, 0.3);
+}
+
+/* Text utilities */
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 600;
+}
+
+/* Shadow utilities */
+.shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; }
+.shadow { box-shadow: var(--box-shadow) !important; }
+.shadow-lg { box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important; }
+
+/* Border utilities */
+.border-gradient {
+    border: 2px solid transparent;
+    background: linear-gradient(white, white), linear-gradient(135deg, var(--primary-color), var(--info-color));
+    background-clip: padding-box, border-box;
+}
+
+/* =====================
+   THEME & SETTINGS
+   ===================== */
+
+/* Dark Theme */
+body.theme-dark {
+    background-color: #1a1a1a;
+    color: #e9ecef;
+}
+
+body.theme-dark .navbar {
+    background-color: #212529 !important;
+}
+
+body.theme-dark .card {
+    background-color: #2d3748;
+    border-color: #4a5568;
+    color: #e9ecef;
+}
+
+body.theme-dark .card-header {
+    background-color: #4a5568;
+    border-color: #718096;
+}
+
+body.theme-dark .form-control,
+body.theme-dark .form-select {
+    background-color: #4a5568;
+    border-color: #718096;
+    color: #e9ecef;
+}
+
+body.theme-dark .form-control:focus,
+body.theme-dark .form-select:focus {
+    background-color: #4a5568;
+    border-color: var(--primary-color);
+    color: #e9ecef;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+body.theme-dark .btn-outline-primary {
+    color: #6cb2eb;
+    border-color: #6cb2eb;
+}
+
+body.theme-dark .btn-outline-primary:hover {
+    background-color: #6cb2eb;
+    color: #1a1a1a;
+}
+
+body.theme-dark .table {
+    color: #e9ecef;
+    background-color: #2d3748;
+}
+
+body.theme-dark .table th {
+    border-color: #4a5568;
+    background-color: #4a5568 !important;
+    color: #e9ecef;
+}
+
+body.theme-dark .table-light th {
+    background-color: #4a5568 !important;
+    color: #e9ecef;
+}
+
+body.theme-dark .table td {
+    border-color: #4a5568;
+}
+
+body.theme-dark .modal-content {
+    background-color: #2d3748;
+    color: #e9ecef;
+}
+
+body.theme-dark .modal-header {
+    border-color: #4a5568;
+}
+
+body.theme-dark .modal-footer {
+    border-color: #4a5568;
+}
+
+/* Light Theme */
+body.theme-light {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+/* Color options for settings */
+.color-option {
+    position: relative;
+}
+
+.color-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50% !important;
+    border: 3px solid transparent !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.color-btn:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background-color: inherit;
+}
+
+.color-option input[type="radio"]:checked + .color-btn {
+    border-color: #000 !important;
+    transform: scale(1.1);
+}
+
+body.theme-dark .color-option input[type="radio"]:checked + .color-btn {
+    border-color: #fff !important;
+}
+
+/* Settings page specific styles */
+.settings-section {
+    margin-bottom: 2rem;
+}
+
+.settings-card {
+    transition: var(--transition);
+}
+
+.settings-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Font size variations */
+body.font-small {
+    font-size: 0.875rem;
+}
+
+body.font-medium {
+    font-size: 1rem;
+}
+
+body.font-large {
+    font-size: 1.125rem;
+}
+
+/* Toast customization */
+.toast {
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+/* Form switches in dark mode */
+body.theme-dark .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+body.theme-dark .form-check-input {
+    background-color: #4a5568;
+    border-color: #718096;
+}
+
+/* Settings icon animation */
+.settings-icon {
+    transition: var(--transition);
+}
+
+.settings-icon:hover {
+    transform: rotate(90deg);
+}
+
+/* Responsive settings */
+@media (max-width: 768px) {
+    .color-btn {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .color-btn:before {
+        width: 25px;
+        height: 25px;
+    }
+}
+
+/* Primary color variations */
+body[data-primary="blue"] {
+    --bs-primary: #0d6efd;
+}
+
+body[data-primary="green"] {
+    --bs-primary: #198754;
+}
+
+body[data-primary="purple"] {
+    --bs-primary: #6f42c1;
+}
+
+body[data-primary="orange"] {
+    --bs-primary: #fd7e14;
+}
+
+/* Calendar View Styles - Google Calendar Style */
+.google-calendar-container {
+    margin-top: 1rem;
+}
+
+.calendar-header {
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.calendar-grid {
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.calendar-weekdays {
+    background: #f1f3f4;
+    border-bottom: 1px solid #dadce0;
+}
+
+.weekday-header {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 500;
+    color: #5f6368;
+    font-size: 0.875rem;
+    border-right: 1px solid #dadce0;
+}
+
+.weekday-header:last-child {
+    border-right: none;
+}
+
+.calendar-week {
+    border-bottom: 1px solid #dadce0;
+}
+
+.calendar-week:last-child {
+    border-bottom: none;
+}
+
+.calendar-day {
+    min-height: 120px;
+    border-right: 1px solid #dadce0;
+    padding: 8px;
+    background: white;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.calendar-day:last-child {
+    border-right: none;
+}
+
+.calendar-day:hover {
+    background: #f8f9fa;
+}
+
+.calendar-day.today {
+    background: #e8f0fe;
+}
+
+.calendar-day.today .day-number {
+    background: #1a73e8;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+.calendar-day.other-month {
+    background: #fafafa;
+    color: #9aa0a6;
+}
+
+.calendar-day.weekend {
+    background: #fef7e0;
+}
+
+.day-number {
+    font-size: 0.875rem;
+    font-weight: 400;
+    margin-bottom: 4px;
+    color: #3c4043;
+}
+
+.day-events-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.calendar-event {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 1px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.calendar-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.calendar-event.all-day {
+    font-weight: 500;
+    padding: 3px 6px;
+}
+
+.calendar-event-content {
+    pointer-events: auto;
+}
+
+.calendar-event .event-time {
+    font-weight: 500;
+    font-size: 0.7rem;
+    margin-bottom: 1px;
+    display: block;
+    opacity: 0.9;
+}
+
+.calendar-event .event-title {
+    font-weight: 400;
+    font-size: 0.75rem;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-event-delete {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    font-size: 0.6rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.calendar-event:hover .calendar-event-delete {
+    display: flex;
+}
+
+.calendar-event-delete:hover {
+    background: #dc3545;
+    transform: scale(1.1);
+}
+
+.calendar-event-more {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: #5f6368;
+    background: #f1f3f4;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    margin-top: 1px;
+}
+
+.calendar-event-more:hover {
+    background: #e8eaed;
+    color: #1a73e8;
+}
+
+.btn-toggle-view {
+    border-radius: 20px !important;
+    padding: 0.5rem 1rem;
+    margin: 0 0.25rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    border: 1px solid #dadce0;
+}
+
+.btn-toggle-view.active {
+    background: #1a73e8 !important;
+    color: white !important;
+    border-color: #1a73e8 !important;
+    box-shadow: 0 1px 2px rgba(26, 115, 232, 0.3);
+}
+
+.btn-toggle-view:not(.active) {
+    background: white;
+    color: #5f6368;
+    border-color: #dadce0;
+}
+
+.btn-toggle-view:not(.active):hover {
+    background: #f1f3f4;
+    border-color: #1a73e8;
+    color: #1a73e8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .calendar-day {
+        min-height: 80px;
+        padding: 4px;
+    }
+    
+    .calendar-event {
+        font-size: 0.7rem;
+        padding: 1px 4px;
+    }
+    
+    .weekday-header {
+        padding: 8px 4px;
+        font-size: 0.75rem;
+    }
+    
+    .day-number {
+        font-size: 0.75rem;
+    }
+}
+
+/* =====================
+   MOBILE NAVIGATION
+   ===================== */
+
+/* Ẩn text trong navigation buttons trên mobile, chỉ hiển thị icon */
+@media (max-width: 768px) {
+    /* Bottom navigation - ẩn text (small tags) */
+    .bottom-nav .nav-item small {
+        display: none !important;
+    }
+    
+    /* Top navbar - ẩn text (span tags, không phải d-none d-sm-inline) */
+    .navbar-nav .nav-link span:not(.d-none):not(.d-sm-none) {
+        display: none !important;
+    }
+    
+    /* Tăng kích thước icon khi không có text */
+    .bottom-nav .nav-item i {
+        font-size: 1.75rem !important; /* Tăng từ 1.5rem lên 1.75rem */
+        margin-bottom: 0 !important;
+    }
+    
+    .navbar-nav .nav-link i {
+        font-size: 1.5rem !important; /* Tăng từ 1.25rem lên 1.5rem */
+        margin-right: 0 !important;
+    }
+    
+    /* Điều chỉnh padding và layout cho bottom nav - chiều cao tối ưu */
+    .bottom-nav .nav-item {
+        padding: 0 !important; /* Xóa mọi padding */
+        min-width: auto !important;
+        height: 80px !important; /* Tăng chiều cao từ 60px lên 80px */
+        max-height: 80px !important; /* Giới hạn chiều cao */
+        min-height: 80px !important; /* Chiều cao tối thiểu */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important; /* Căn về trên để icon ở vị trí 20% từ trên */
+        text-decoration: none !important;
+        position: relative !important;
+        overflow: hidden !important; /* Ngăn overflow */
+        transition: none !important; /* Tắt hoàn toàn transition để ngăn dịch chuyển */
+        transform: none !important; /* Ngăn mọi transform */
+    }
+    
+    /* Đặt icon ở vị trí 20% từ trên xuống */
+    .bottom-nav .nav-item i {
+        position: absolute !important;
+        top: 20% !important; /* 20% từ trên xuống */
+        left: 50% !important;
+        transform: translateX(-50%) !important; /* Chỉ căn giữa theo chiều ngang */
+        font-size: 1.5rem !important; /* Size icon phù hợp */
+        transition: none !important; /* Tắt mọi transition cho icon */
+        animation: none !important; /* Tắt mọi animation cho icon */
+    }
+    
+    /* Điều chỉnh cho top navbar - tăng chiều cao */
+    .navbar-nav .nav-link {
+        padding: 0 16px !important; /* Giữ padding ngang, xóa padding dọc */
+        min-width: auto !important;
+        min-height: 50px !important; /* Thêm chiều cao tối thiểu */
+        display: flex !important;
+        align-items: flex-end !important; /* Căn về phía dưới */
+        justify-content: center !important;
+        position: relative !important;
+    }
+    
+    /* Đặt icon ở vị trí 80% chiều cao cho navbar */
+    .navbar-nav .nav-link i {
+        position: absolute !important;
+        bottom: 20% !important; /* 20% từ dưới lên = 80% chiều cao */
+        left: 50% !important;
+        transform: translateX(-50%) !important; /* Căn giữa theo chiều ngang */
+    }
+    
+    /* Xử lý cho các button có text */
+    .btn .btn-text,
+    .btn span:not(.fas):not(.fa):not(.icon) {
+        display: none !important;
+    }
+    
+    .btn i {
+        margin-right: 0 !important;
+        font-size: 1.3rem !important; /* Tăng từ 1.1rem lên 1.3rem */
+    }
+    
+    /* Tooltip cho mobile - hiển thị text khi hover/touch */
+    .nav-item:hover::after {
+        content: attr(data-title);
+        position: absolute;
+        bottom: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 1000;
+        pointer-events: none;
+    }
+}
+
+/* ================================
+   DASHBOARD TRANG CHỦ
+   ================================ */
+
+/* Dashboard trang chủ responsive */
+.dashboard-container {
+    max-width: 100%;
+    overflow-x: hidden;
+    padding: 0 0.5rem;
+}
+
+.dashboard-row {
+    margin: 0;
+    max-width: 100%;
+}
+
+.dashboard-col {
+    padding: 0.25rem;
+    box-sizing: border-box;
+}
+
+/* Bảng responsive đơn giản cho dashboard */
+.dashboard-container .table-container {
+    width: 100%;
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.dashboard-container .table {
+    width: 100%;
+    table-layout: auto;
+    margin-bottom: 0;
+}
+
+.dashboard-container .table th,
+.dashboard-container .table td {
+    padding: 0.5rem 0.25rem;
+    word-wrap: break-word;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 0 0.25rem;
+    }
+    
+    .dashboard-container .table th,
+    .dashboard-container .table td {
+        padding: 0.25rem 0.15rem;
+        font-size: 0.75rem;
+    }
+    
+    .dashboard-container .card-body {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-container .table th,
+    .dashboard-container .table td {
+        padding: 0.2rem 0.1rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* ================================
+   CHI TIÊU TRANG
+   ================================ */
+
+/* CSS tùy chỉnh cho bảng chi tiêu responsive */
+.chi-tieu-page .card {
+    overflow: hidden;
+    border-radius: 8px;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.chi-tieu-page .table-container {
+    width: 100%;
+    overflow: hidden;
+    max-width: 100%;
+    position: relative;
+}
+
+.chi-tieu-page .table {
+    width: 100% !important;
+    table-layout: fixed;
+    margin-bottom: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.chi-tieu-page .card-body {
+    padding: 0 !important;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+/* Force table to stay within bounds */
+.chi-tieu-page .table th,
+.chi-tieu-page .table td {
+    box-sizing: border-box;
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0; /* Force ellipsis */
+}
+
+/* CSS riêng cho bảng thu chi */
+.table-thu-chi {
+    table-layout: fixed !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+.table-thu-chi th,
+.table-thu-chi td {
+    padding: 0.5rem 0.3rem !important;
+    font-size: 0.85rem !important;
+    vertical-align: middle !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 0 !important;
+    border: 1px solid #dee2e6 !important;
+}
+
+/* Desktop - 6 cột với text truncation */
+.table-thu-chi th:nth-child(1), .table-thu-chi td:nth-child(1) { 
+    width: 12% !important; 
+    max-width: 12% !important;
+}
+
+.table-thu-chi th:nth-child(2), .table-thu-chi td:nth-child(2) { 
+    width: 10% !important; 
+    max-width: 10% !important;
+}
+
+.table-thu-chi th:nth-child(3), .table-thu-chi td:nth-child(3) { 
+    width: 25% !important; 
+    max-width: 25% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.table-thu-chi th:nth-child(4), .table-thu-chi td:nth-child(4) { 
+    width: 18% !important; 
+    max-width: 18% !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.table-thu-chi th:nth-child(5), .table-thu-chi td:nth-child(5) { 
+    width: 20% !important; 
+    max-width: 20% !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+}
+
+.table-thu-chi th:nth-child(6), .table-thu-chi td:nth-child(6) { 
+    width: 15% !important; 
+    max-width: 15% !important;
+    text-align: center !important;
+}
+
+@media screen and (max-width: 768px) {
+    /* Force CSS mobile cho bảng thu chi với specificity cao */
+    .card .card-body .table-container .table-thu-chi {
+        table-layout: fixed !important;
+        width: 100% !important;
+        font-size: 0.55rem !important;
+        border-collapse: collapse !important;
+    }
+    
+    .card .card-body .table-container .table-thu-chi th,
+    .card .card-body .table-container .table-thu-chi td {
+        padding: 0.15rem 0.05rem !important;
+        font-size: 0.5rem !important;
+        line-height: 1.0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        max-width: 0 !important;
+        border: 1px solid #ccc !important;
+        vertical-align: middle !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Mobile - Force width cho từng cột */
+    .card .card-body .table-container .table-thu-chi th:nth-child(1), 
+    .card .card-body .table-container .table-thu-chi td:nth-child(1) { 
+        width: 12% !important; 
+        max-width: 12% !important;
+        min-width: 12% !important;
+    }
+    
+    .card .card-body .table-container .table-thu-chi th:nth-child(2), 
+    .card .card-body .table-container .table-thu-chi td:nth-child(2) { 
+        width: 10% !important; 
+        max-width: 10% !important;
+        min-width: 10% !important;
+    }
+    
+    .card .card-body .table-container .table-thu-chi th:nth-child(3), 
+    .card .card-body .table-container .table-thu-chi td:nth-child(3) { 
+        width: 25% !important; 
+        max-width: 25% !important;
+        min-width: 25% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    .card .card-body .table-container .table-thu-chi th:nth-child(4), 
+    .card .card-body .table-container .table-thu-chi td:nth-child(4) { 
+        width: 15% !important; 
+        max-width: 15% !important;
+        min-width: 15% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    .card .card-body .table-container .table-thu-chi th:nth-child(5), 
+    .card .card-body .table-container .table-thu-chi td:nth-child(5) { 
+        width: 20% !important; 
+        max-width: 20% !important;
+        min-width: 20% !important;
+        text-align: right !important;
+        white-space: nowrap !important;
+    }
+    
+    .card .card-body .table-container .table-thu-chi th:nth-child(6), 
+    .card .card-body .table-container .table-thu-chi td:nth-child(6) { 
+        width: 18% !important; 
+        max-width: 18% !important;
+        min-width: 18% !important;
+        text-align: center !important;
+    }
+    
+    /* Đảm bảo container không overflow trên mobile */
+    .chi-tieu-page .card {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+        margin: 0 !important;
+    }
+    
+    .chi-tieu-page .table-container {
+        width: 100% !important;
+        overflow: hidden !important;
+        max-width: 100% !important;
+    }
+}

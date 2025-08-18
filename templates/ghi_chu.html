@@ -1,0 +1,660 @@
+﻿{% extends "base.html" %}
+
+{% block tieu_de %}Quản Lý Ghi Chú{% endblock %}
+
+{% block noi_dung %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 text-primary">
+                        <i class="fas fa-sticky-note me-2"></i>
+                        Quản Lý Ghi Chú
+                    </h1>
+                </div>
+                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modal-them-ghi-chu">
+                    <i class="fas fa-plus me-1"></i>
+                    <span class="d-none d-sm-inline">Thêm Ghi Chú</span>
+                    <span class="d-sm-none">Thêm</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bộ lọc gọn -->
+    <div class="row mb-3 align-items-end g-2">
+        <div class="col-12 col-md-5">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" id="tim-kiem" placeholder="Tìm kiếm ghi chú...">
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <select class="form-control" id="loc-danh-muc">
+                <option value="">🗂️ Tất cả danh mục</option>
+                <option value="cong-viec">💼 Công việc</option>
+                <option value="hoc-tap">📚 Học tập</option>
+                <option value="ca-nhan">👤 Cá nhân</option>
+                <option value="suc-khoe">💊 Sức khỏe</option>
+                <option value="khac">📦 Khác</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-3">
+            <select class="form-control" id="loc-uu-tien">
+                <option value="">⭐ Tất cả mức độ</option>
+                <option value="cao">🔴 Cao</option>
+                <option value="trung-binh">🟡 Trung bình</option>
+                <option value="thap">🟢 Thấp</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-1 d-grid">
+            <button class="btn btn-outline-secondary btn-sm" onclick="reset_bo_loc_ghi_chu()" title="Xóa bộ lọc">
+                <i class="fas fa-undo me-1 d-md-none"></i>
+                <span class="d-md-none">Reset</span>
+                <i class="fas fa-undo d-none d-md-inline"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="ghi-chu-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tat-ca-ghi-chu" type="button">
+                <i class="fas fa-list me-1"></i>Tất Cả
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ghi-chu-quan-trong" type="button">
+                <i class="fas fa-star me-1"></i>Quan Trọng
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#nhac-nho" type="button">
+                <i class="fas fa-bell me-1"></i>Nhắc Nhở
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="ghi-chu-content">
+        <!-- Tất cả ghi chú -->
+        <div class="tab-pane fade show active" id="tat-ca-ghi-chu" role="tabpanel">
+            <div class="row" id="danh-sach-ghi-chu">
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-info" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ghi chú quan trọng -->
+        <div class="tab-pane fade" id="ghi-chu-quan-trong" role="tabpanel">
+            <div class="row" id="danh-sach-quan-trong">
+                <!-- Sẽ được load bằng JavaScript -->
+            </div>
+        </div>
+
+        <!-- Nhắc nhở -->
+        <div class="tab-pane fade" id="nhac-nho" role="tabpanel">
+            <div class="row" id="danh-sach-nhac-nho">
+                <!-- Sẽ được load bằng JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm ghi chú -->
+<div class="modal fade" id="modal-them-ghi-chu" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Thêm Ghi Chú Mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-them-ghi-chu">
+                    <div class="mb-3">
+                        <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="tieu-de-ghi-chu" placeholder="Tiêu đề ghi chú" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nội dung</label>
+                        <textarea class="form-control" id="noi-dung-ghi-chu" rows="4" placeholder="Viết nội dung ghi chú tại đây..."></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Danh mục</label>
+                                <select class="form-control" id="danh-muc-ghi-chu">
+                                    <option value="ca-nhan">👤 Cá nhân</option>
+                                    <option value="cong-viec">💼 Công việc</option>
+                                    <option value="hoc-tap">📚 Học tập</option>
+                                    <option value="suc-khoe">💊 Sức khỏe</option>
+                                    <option value="khac">📦 Khác</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Mức độ ưu tiên</label>
+                                <select class="form-control" id="muc-do-uu-tien">
+                                    <option value="thap">🟢 Thấp</option>
+                                    <option value="trung-binh" selected>🟡 Trung bình</option>
+                                    <option value="cao">🔴 Cao</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="ghi-chu-quan-trong">
+                            <label class="form-check-label" for="ghi-chu-quan-trong">
+                                <i class="fas fa-star text-warning me-1"></i>
+                                Đánh dấu là quan trọng
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6><i class="fas fa-bell me-2"></i>Tạo Nhắc Nhở</h6>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tao-nhac-nho">
+                            <label class="form-check-label" for="tao-nhac-nho">
+                                Tạo nhắc nhở trên Google Calendar
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="thong-tin-nhac-nho" class="d-none">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Ngày nhắc nhở</label>
+                                    <input type="date" class="form-control" id="ngay-nhac-nho">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Giờ nhắc nhở</label>
+                                    <input type="time" class="form-control" id="gio-nhac-nho">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Lặp lại</label>
+                            <select class="form-control" id="lap-lai">
+                                <option value="khong">Không lặp lại</option>
+                                <option value="hang-ngay">Hàng ngày</option>
+                                <option value="hang-tuan">Hàng tuần</option>
+                                <option value="hang-thang">Hàng tháng</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-info" onclick="them_ghi_chu()">
+                    <i class="fas fa-save me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xem chi tiết ghi chú -->
+<div class="modal fade" id="modal-chi-tiet-ghi-chu" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tieu-de-chi-tiet">
+                    <i class="fas fa-sticky-note me-2"></i>
+                    Chi Tiết Ghi Chú
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="noi-dung-chi-tiet">
+                <!-- Nội dung sẽ được load bằng JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-info" id="btn-sua-ghi-chu">
+                    <i class="fas fa-edit me-1"></i>Sửa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        tai_danh_sach_ghi_chu();
+        
+        // Xử lý checkbox tạo nhắc nhở
+        document.getElementById('tao-nhac-nho').addEventListener('change', function() {
+            const thong_tin = document.getElementById('thong-tin-nhac-nho');
+            if (this.checked) {
+                thong_tin.classList.remove('d-none');
+                // Đặt thời gian mặc định
+                const hom_nay = new Date();
+                document.getElementById('ngay-nhac-nho').value = hom_nay.toISOString().split('T')[0];
+                document.getElementById('gio-nhac-nho').value = '09:00';
+            } else {
+                thong_tin.classList.add('d-none');
+            }
+        });
+        
+        // Xử lý tìm kiếm real-time
+        document.getElementById('tim-kiem').addEventListener('input', function() {
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => {
+                loc_ghi_chu();
+            }, 300);
+        });
+        
+        // Xử lý filter dropdown
+        document.getElementById('loc-danh-muc').addEventListener('change', loc_ghi_chu);
+        document.getElementById('loc-uu-tien').addEventListener('change', loc_ghi_chu);
+    });
+
+    async function tai_danh_sach_ghi_chu() {
+        try {
+            const response = await fetch('/api/ghi-chu');
+            const data = await response.json();
+            
+            if (data.thanh_cong) {
+                hien_thi_danh_sach_ghi_chu(data.du_lieu);
+                loc_ghi_chu_quan_trong(data.du_lieu);
+                loc_nhac_nho(data.du_lieu);
+            } else {
+                throw new Error(data.loi);
+            }
+        } catch (error) {
+            console.error('Lỗi tải ghi chú:', error);
+            document.getElementById('danh-sach-ghi-chu').innerHTML = `
+                <div class="col-12 text-center py-5 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Lỗi tải dữ liệu: ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    function hien_thi_danh_sach_ghi_chu(danh_sach) {
+        const container = document.getElementById('danh-sach-ghi-chu');
+        
+        if (danh_sach.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-sticky-note fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Chưa có ghi chú nào</p>
+                    <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#modal-them-ghi-chu">
+                        <i class="fas fa-plus me-1"></i>Tạo ghi chú đầu tiên
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = danh_sach.map(ghi_chu => {
+            const mau_uu_tien = ghi_chu.muc_do_uu_tien === 'cao' ? 'danger' : 
+                               ghi_chu.muc_do_uu_tien === 'trung-binh' ? 'warning' : 'success';
+            
+            const icon_danh_muc = lay_icon_danh_muc(ghi_chu.danh_muc);
+            const co_nhac_nho = ghi_chu.ngay_nhac_nho;
+            
+            return `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 ${ghi_chu.muc_do_uu_tien === 'cao' ? 'border-danger' : ''}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title">
+                                    ${co_nhac_nho ? '<i class="fas fa-bell text-info me-1"></i>' : ''}
+                                    ${ghi_chu.tieu_de}
+                                </h6>
+                                <span class="badge bg-${mau_uu_tien}">${ghi_chu.muc_do_uu_tien}</span>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    ${icon_danh_muc} ${lay_ten_danh_muc(ghi_chu.danh_muc)}
+                                </small>
+                            </div>
+                            
+                            <p class="card-text">
+                                ${ghi_chu.noi_dung ? (ghi_chu.noi_dung.length > 100 ? ghi_chu.noi_dung.substring(0, 100) + '...' : ghi_chu.noi_dung) : 'Không có nội dung'}
+                            </p>
+                            
+                            ${co_nhac_nho ? `
+                                <div class="mb-2">
+                                    <small class="text-info">
+                                        <i class="fas fa-bell me-1"></i>
+                                        Nhắc nhở: ${dinh_dang_ngay_gio(ghi_chu.ngay_nhac_nho)}
+                                    </small>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    ${dinh_dang_ngay_gio(ghi_chu.ngay_tao)}
+                                </small>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-outline-info" onclick="xem_chi_tiet_ghi_chu(${ghi_chu.id})" title="Xem chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="xoa_ghi_chu(${ghi_chu.id})" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function loc_ghi_chu_quan_trong(danh_sach) {
+        // Lọc ghi chú có mức độ ưu tiên cao làm "quan trọng"
+        const quan_trong = danh_sach.filter(item => item.muc_do_uu_tien === 'cao');
+        const container = document.getElementById('danh-sach-quan-trong');
+        
+        if (quan_trong.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Chưa có ghi chú quan trọng</p>
+                </div>
+            `;
+        } else {
+            // Hiển thị ghi chú quan trọng (ưu tiên cao)
+            container.innerHTML = quan_trong.slice(0, 3).map(ghi_chu => {
+                const icon_danh_muc = lay_icon_danh_muc(ghi_chu.danh_muc);
+                return `
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <h6 class="card-title text-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    ${ghi_chu.tieu_de}
+                                </h6>
+                                <p class="card-text small">${icon_danh_muc} ${lay_ten_danh_muc(ghi_chu.danh_muc)}</p>
+                                <small class="text-muted">${dinh_dang_ngay_gio(ghi_chu.ngay_tao)}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    function loc_nhac_nho(danh_sach) {
+        // Lọc ghi chú có ngày nhắc nhở
+        const co_nhac_nho = danh_sach.filter(item => item.ngay_nhac_nho);
+        const container = document.getElementById('danh-sach-nhac-nho');
+        
+        if (co_nhac_nho.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-bell fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Chưa có nhắc nhở nào</p>
+                </div>
+            `;
+        } else {
+            // Hiển thị ghi chú có nhắc nhở
+            container.innerHTML = co_nhac_nho.slice(0, 3).map(ghi_chu => {
+                const icon_danh_muc = lay_icon_danh_muc(ghi_chu.danh_muc);
+                return `
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body">
+                                <h6 class="card-title text-info">
+                                    <i class="fas fa-bell me-1"></i>
+                                    ${ghi_chu.tieu_de}
+                                </h6>
+                                <p class="card-text small">${icon_danh_muc} ${lay_ten_danh_muc(ghi_chu.danh_muc)}</p>
+                                <small class="text-info">
+                                    <i class="fas fa-clock me-1"></i>
+                                    ${dinh_dang_ngay_gio(ghi_chu.ngay_nhac_nho)}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    async function them_ghi_chu() {
+        const form = document.getElementById('form-them-ghi-chu');
+        
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const ngay_nhac_nho = document.getElementById('ngay-nhac-nho').value;
+        const gio_nhac_nho = document.getElementById('gio-nhac-nho').value;
+        
+        // Kết hợp ngày và giờ thành datetime
+        let ngay_gio_nhac_nho = null;
+        if (ngay_nhac_nho && gio_nhac_nho) {
+            ngay_gio_nhac_nho = `${ngay_nhac_nho}T${gio_nhac_nho}:00`;
+        }
+
+        const du_lieu = {
+            tieu_de: document.getElementById('tieu-de-ghi-chu').value,
+            noi_dung: document.getElementById('noi-dung-ghi-chu').value,
+            danh_muc: document.getElementById('danh-muc-ghi-chu').value,
+            muc_do_uu_tien: document.getElementById('muc-do-uu-tien').value,
+            ngay_nhac_nho: ngay_gio_nhac_nho
+        };
+
+        // Debug log
+        console.log('📝 Dữ liệu gửi lên API:', du_lieu);
+
+        try {
+            const response = await fetch('/api/ghi-chu', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(du_lieu)
+            });
+
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                hien_thi_thong_bao('Đã thêm ghi chú mới!', 'success');
+                if (du_lieu.tao_nhac_nho) {
+                    hien_thi_thong_bao('Đã tạo nhắc nhở trên Google Calendar!', 'success');
+                }
+                
+                bootstrap.Modal.getInstance(document.getElementById('modal-them-ghi-chu')).hide();
+                form.reset();
+                document.getElementById('thong-tin-nhac-nho').classList.add('d-none');
+                tai_danh_sach_ghi_chu();
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    async function loc_ghi_chu() {
+        const tim_kiem = document.getElementById('tim-kiem').value.toLowerCase();
+        const danh_muc = document.getElementById('loc-danh-muc').value;
+        const uu_tien = document.getElementById('loc-uu-tien').value;
+        
+        try {
+            // Xây dựng URL với parameters
+            let url = '/api/ghi-chu?';
+            const params = [];
+            
+            if (danh_muc) params.push(`danh_muc=${danh_muc}`);
+            if (uu_tien) params.push(`muc_do_uu_tien=${uu_tien}`);
+            if (tim_kiem) params.push(`tu_khoa=${encodeURIComponent(tim_kiem)}`);
+            
+            url += params.join('&');
+            
+            console.log('🔍 URL filter:', url);
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.thanh_cong) {
+                hien_thi_danh_sach_ghi_chu(data.du_lieu);
+                loc_ghi_chu_quan_trong(data.du_lieu);
+                loc_nhac_nho(data.du_lieu);
+            } else {
+                throw new Error(data.loi);
+            }
+        } catch (error) {
+            console.error('Lỗi lọc ghi chú:', error);
+            hien_thi_thong_bao('Lỗi khi lọc dữ liệu', 'error');
+        }
+    }
+
+    function reset_bo_loc_ghi_chu() {
+        // Reset tất cả các filter về giá trị mặc định
+        document.getElementById('tim-kiem').value = '';
+        document.getElementById('loc-danh-muc').value = '';
+        document.getElementById('loc-uu-tien').value = '';
+        
+        // Tải lại danh sách ghi chú đầy đủ
+        tai_danh_sach_ghi_chu();
+        
+        hien_thi_thong_bao('Đã xóa bộ lọc', 'success');
+    }
+
+    async function xem_chi_tiet_ghi_chu(id) {
+        try {
+            const response = await fetch(`/api/ghi-chu?id=${id}`);
+            const data = await response.json();
+            
+            if (data.thanh_cong && data.du_lieu.length > 0) {
+                const ghi_chu = data.du_lieu[0];
+                
+                // Hiển thị thông tin chi tiết (có thể tạo modal chi tiết hoặc alert)
+                alert(`Chi tiết ghi chú:
+                
+Tiêu đề: ${ghi_chu.tieu_de}
+Danh mục: ${lay_ten_danh_muc(ghi_chu.danh_muc)}
+Mức độ ưu tiên: ${ghi_chu.muc_do_uu_tien}
+Ngày tạo: ${dinh_dang_ngay_gio(ghi_chu.ngay_tao)}
+${ghi_chu.ngay_nhac_nho ? `Nhắc nhở: ${dinh_dang_ngay_gio(ghi_chu.ngay_nhac_nho)}` : ''}
+
+Nội dung: ${ghi_chu.noi_dung || 'Không có nội dung'}`);
+            } else {
+                throw new Error('Không tìm thấy ghi chú');
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    async function xoa_ghi_chu(id) {
+        if (confirm('Bạn có chắc muốn xóa ghi chú này?')) {
+            try {
+                const response = await fetch(`/api/ghi-chu/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.thanh_cong) {
+                    hien_thi_thong_bao('Đã xóa ghi chú!', 'success');
+                    tai_danh_sach_ghi_chu();
+                } else {
+                    throw new Error(result.loi);
+                }
+            } catch (error) {
+                hien_thi_thong_bao(`Lỗi khi xóa: ${error.message}`, 'error');
+            }
+        }
+    }
+
+    function lay_icon_danh_muc(danh_muc) {
+        const icons = {
+            'ca-nhan': '👤',
+            'cong-viec': '💼',
+            'hoc-tap': '📚',
+            'suc-khoe': '💊',
+            'khac': '📦'
+        };
+        return icons[danh_muc] || '📝';
+    }
+
+    function lay_ten_danh_muc(danh_muc) {
+        const ten_danh_muc = {
+            'ca-nhan': 'Cá nhân',
+            'cong-viec': 'Công việc',
+            'hoc-tap': 'Học tập',
+            'suc-khoe': 'Sức khỏe',
+            'khac': 'Khác'
+        };
+        return ten_danh_muc[danh_muc] || danh_muc;
+    }
+
+    function dinh_dang_ngay_gio(ngay_gio_str) {
+        const ngay_gio = new Date(ngay_gio_str);
+        return ngay_gio.toLocaleString('vi-VN');
+    }
+
+    function hien_thi_thong_bao(thong_bao, loai) {
+        // Tạo toast notification
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${loai === 'success' ? 'success' : 'danger'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${loai === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+                    ${thong_bao}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        
+        // Thêm vào container
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '1055';
+            document.body.appendChild(container);
+        }
+        
+        container.appendChild(toast);
+        
+        // Hiển thị toast
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        // Tự động xóa sau khi ẩn
+        toast.addEventListener('hidden.bs.toast', function () {
+            toast.remove();
+        });
+    }
+</script>
+{% endblock %}
+

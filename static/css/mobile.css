@@ -1,0 +1,398 @@
+/* Mobile Specific CSS Improvements */
+/* File: static/css/mobile.css */
+
+/* iOS và Mobile Enhancements */
+@media (max-width: 768px) {
+    /* =====================
+       GENERAL MOBILE FIXES
+       ===================== */
+    
+    /* Better text rendering on mobile */
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+    
+    /* Fix input zoom on iOS */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    textarea,
+    select {
+        font-size: 16px !important;
+        -webkit-appearance: none;
+        appearance: none;
+        border-radius: 8px;
+    }
+    
+    /* Better button styling on mobile */
+    .btn {
+        min-height: 48px;
+        font-size: 16px !important;
+        font-weight: 500;
+        border-radius: 8px;
+        -webkit-appearance: none;
+        appearance: none;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+        touch-action: manipulation;
+    }
+    
+    /* =====================
+       BOTTOM NAVIGATION
+       ===================== */
+    
+    .bottom-nav {
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .bottom-nav .nav-item {
+        position: relative;
+        min-width: 60px;
+        padding: 8px 4px;
+    }
+    
+    .bottom-nav .nav-item a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        padding: 4px;
+        min-height: 44px; /* iOS recommended touch target */
+    }
+    
+    .bottom-nav .nav-item a:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+        color: #0d6efd;
+    }
+    
+    .bottom-nav .nav-item.active a {
+        color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+    
+    .bottom-nav .nav-item i {
+        font-size: 1.2rem;
+        margin-bottom: 2px;
+    }
+    
+    .bottom-nav .nav-item small {
+        font-size: 0.7rem;
+        line-height: 1;
+        font-weight: 500;
+    }
+    
+    /* Active indicator */
+    .bottom-nav .nav-item.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 2px;
+        background: #0d6efd;
+        border-radius: 0 0 2px 2px;
+    }
+    
+    /* =====================
+       CARDS AND LAYOUTS
+       ===================== */
+    
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: none;
+        margin-bottom: 1rem;
+    }
+    
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Better spacing for mobile */
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    .row {
+        margin-left: -0.375rem;
+        margin-right: -0.375rem;
+    }
+    
+    .row > * {
+        padding-left: 0.375rem;
+        padding-right: 0.375rem;
+    }
+    
+    /* =====================
+       FORM IMPROVEMENTS
+       ===================== */
+    
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+    
+    .form-floating > .form-control,
+    .form-floating > .form-select {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        font-size: 16px !important;
+    }
+    
+    .form-floating > .form-control:focus,
+    .form-floating > .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-floating > label {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    /* =====================
+       TABLE IMPROVEMENTS
+       ===================== */
+    
+    .table-responsive {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .table {
+        font-size: 0.875rem;
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    /* =====================
+       MODAL IMPROVEMENTS
+       ===================== */
+    
+    .modal-dialog {
+        margin: 1rem;
+    }
+    
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal-header {
+        border-radius: 12px 12px 0 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .modal-footer {
+        border-radius: 0 0 12px 12px;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    /* =====================
+       ALERT IMPROVEMENTS
+       ===================== */
+    
+    .alert {
+        border-radius: 8px;
+        border: none;
+        margin-bottom: 1rem;
+    }
+    
+    .alert-success {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #155724;
+    }
+    
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #721c24;
+    }
+    
+    .alert-warning {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #856404;
+    }
+    
+    .alert-info {
+        background-color: rgba(13, 202, 240, 0.1);
+        color: #055160;
+    }
+    
+    /* =====================
+       DASHBOARD SPECIFIC
+       ===================== */
+    
+    .dashboard-container {
+        padding-top: 1rem;
+        padding-bottom: 2rem;
+    }
+    
+    .dashboard-row {
+        margin-bottom: 1.5rem;
+    }
+    
+    .dashboard-col .card {
+        height: 100%;
+        transition: all 0.2s ease;
+    }
+    
+    .dashboard-col .card:active {
+        transform: scale(0.98);
+    }
+    
+    /* Stats cards */
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    }
+    
+    .bg-gradient-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%) !important;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%) !important;
+    }
+    
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+    }
+    
+    /* =====================
+       LOADING STATES
+       ===================== */
+    
+    .loading-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        color: #6c757d;
+    }
+    
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
+/* =====================
+   iOS SPECIFIC FIXES
+   ===================== */
+
+.ios-device {
+    /* Better text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.ios-device input,
+.ios-device textarea,
+.ios-device select {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.ios-device .btn {
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+}
+
+/* iOS active states */
+.ios-device .btn:active,
+.ios-device .card:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+/* PWA mode specific styles */
+.pwa-mode {
+    /* Hide address bar space */
+    padding-top: 0 !important;
+}
+
+.pwa-mode .navbar {
+    padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pwa-mode .bottom-nav {
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    height: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+/* =====================
+   ACCESSIBILITY
+   ===================== */
+
+/* Better focus indicators for mobile */
+@media (max-width: 768px) {
+    *:focus {
+        outline: 2px solid #0d6efd;
+        outline-offset: 2px;
+    }
+    
+    .btn:focus {
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+}
+
+/* =====================
+   DARK MODE SUPPORT
+   ===================== */
+
+@media (prefers-color-scheme: dark) {
+    .card {
+        background-color: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    .bottom-nav {
+        background: rgba(45, 55, 72, 0.95);
+        border-top-color: #4a5568;
+    }
+    
+    .form-control,
+    .form-select {
+        background-color: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+}

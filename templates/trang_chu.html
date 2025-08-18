@@ -1,0 +1,1504 @@
+{% extends "base.html" %}
+
+{% block tieu_de %}Trang Chủ - Quản Lý Cá Nhân{% endblock %}
+
+{% block extra_css %}
+<style>
+/* CSS cho bảng thống kê lương responsive */
+.table-responsive-fit {
+    width: 100% !important;
+    table-layout: fixed !important;
+    word-wrap: break-word !important;
+}
+
+.table-responsive-fit th,
+.table-responsive-fit td {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    padding: 0.5rem 0.25rem !important;
+    font-size: 0.875rem !important;
+    vertical-align: middle !important;
+}
+
+/* Desktop columns */
+@media (min-width: 768px) {
+    .col-date { width: 15% !important; }
+    .col-time { width: 12% !important; }
+    .col-hours { width: 10% !important; }
+    .col-salary { width: 18% !important; }
+}
+
+/* Tablet columns */
+@media (max-width: 767px) and (min-width: 576px) {
+    .table-responsive-fit th,
+    .table-responsive-fit td {
+        font-size: 0.75rem !important;
+        padding: 0.4rem 0.2rem !important;
+    }
+    
+    .col-date { width: 25% !important; }
+    .col-hours { width: 20% !important; }
+    .col-salary { width: 30% !important; }
+}
+
+/* Mobile columns */
+@media (max-width: 575px) {
+    .table-responsive-fit th,
+    .table-responsive-fit td {
+        font-size: 0.7rem !important;
+        padding: 0.3rem 0.15rem !important;
+    }
+    
+    .col-date { width: 25% !important; }
+    .col-hours { width: 20% !important; }
+    .col-salary { 
+        width: 55% !important; 
+        font-size: 0.65rem !important;
+        font-weight: bold !important;
+    }
+    
+    /* Rút gọn text trên mobile */
+    .col-date { 
+        font-size: 0.65rem !important;
+    }
+}
+
+/* Force no horizontal scroll */
+.table-container {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Responsive text cho các cột */
+.text-truncate-custom {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+}
+
+/* Badge responsive */
+@media (max-width: 575px) {
+    .badge {
+        font-size: 0.6rem !important;
+        padding: 0.2rem 0.4rem !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block noi_dung %}
+<div class="dashboard-container">
+    <!-- Header với thời gian thực -->
+    <div class="dashboard-row row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 text-primary">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Dashboard - Tổng Quan
+                    </h1>
+                    <p class="small text-info">
+                        <i class="fas fa-clock me-1"></i>
+                        <span id="thoi-gian-hien-tai"></span>
+                    </p>
+                </div>
+                <div class="text-end">
+                    <div id="weather-widget" class="d-none">
+                        <i class="fas fa-sun text-warning"></i>
+                        <span id="nhiet-do">--°C</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê tổng quan thu chi -->
+    <div class="dashboard-row row g-3 mb-4">
+        <div class="dashboard-col col-6 col-md-3">
+            <div class="card bg-gradient-success text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-arrow-up fa-2x mb-2"></i>
+                    <h6 class="card-title">Thu Nhập Tháng</h6>
+                    <h4 id="tong-thu" data-currency="0" class="mb-1">0 VNĐ</h4>
+                    <small class="opacity-75">
+                        <i class="fas fa-trending-up me-1"></i>
+                        <span id="tang-giam-thu">+0%</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-col col-6 col-md-3">
+            <div class="card bg-gradient-danger text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-arrow-down fa-2x mb-2"></i>
+                    <h6 class="card-title">Chi Tiêu Tháng</h6>
+                    <h4 id="tong-chi" data-currency="0" class="mb-1">0 VNĐ</h4>
+                    <small class="opacity-75">
+                        <i class="fas fa-trending-down me-1"></i>
+                        <span id="tang-giam-chi">+0%</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-col col-6 col-md-3">
+            <div class="card bg-gradient-primary text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-piggy-bank fa-2x mb-2"></i>
+                    <h6 class="card-title">Số Dư</h6>
+                    <h4 id="so-du" data-currency="0" class="mb-1">0 VNĐ</h4>
+                    <small class="opacity-75">
+                        <i class="fas fa-wallet me-1"></i>
+                        <span id="ty-le-tiet-kiem">0%</span> tiết kiệm
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-col col-6 col-md-3">
+            <div class="card bg-gradient-warning text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-day fa-2x mb-2"></i>
+                    <h6 class="card-title">Hôm Nay</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="opacity-75">Thu</small>
+                            <div id="thu-hom-nay" data-currency="0" class="fw-bold">0</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="opacity-75">Chi</small>
+                            <div id="chi-hom-nay" data-currency="0" class="fw-bold">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ xu hướng thu chi -->
+    <div class="dashboard-row row g-4 mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-line text-primary me-2"></i>
+                                Xu Hướng Thu Chi
+                            </h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row g-2">
+                                <div class="col-5">
+                                    <label class="form-label small mb-1">Từ ngày:</label>
+                                    <input type="date" class="form-control form-control-sm" id="tu-ngay-xu-huong">
+                                </div>
+                                <div class="col-5">
+                                    <label class="form-label small mb-1">Đến ngày:</label>
+                                    <input type="date" class="form-control form-control-sm" id="den-ngay-xu-huong">
+                                </div>
+                                <div class="col-2 d-flex align-items-end">
+                                    <button type="button" class="btn btn-primary btn-sm w-100" onclick="cap_nhat_bieu_do_xu_huong_theo_ngay()">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body chart-body">
+                    <div class="chart-container" style="position: relative; height: 400px;">
+                        <canvas id="bieu-do-xu-huong"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê lương dự tính -->
+    <div class="dashboard-row row g-4 mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-calculator text-info me-2"></i>
+                                Thống Kê Lương Dự Tính
+                            </h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row g-2">
+                                <div class="col-5">
+                                    <label class="form-label small mb-1">Từ ngày:</label>
+                                    <input type="date" class="form-control form-control-sm" id="tu-ngay-luong">
+                                </div>
+                                <div class="col-5">
+                                    <label class="form-label small mb-1">Đến ngày:</label>
+                                    <input type="date" class="form-control form-control-sm" id="den-ngay-luong">
+                                </div>
+                                <div class="col-2 d-flex align-items-end">
+                                    <button type="button" class="btn btn-info btn-sm w-100" onclick="cap_nhat_thong_ke_luong_theo_ngay()">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Thống kê tổng quan -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="card bg-light text-center h-100">
+                                <div class="card-body py-3">
+                                    <h6 class="card-title text-muted small mb-1">Tổng Giờ Làm</h6>
+                                    <h4 class="text-primary mb-0" id="tong-gio-lam">0h</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card bg-light text-center h-100">
+                                <div class="card-body py-3">
+                                    <h6 class="card-title text-muted small mb-1">Lương Cơ Bản</h6>
+                                    <h4 class="text-success mb-0" id="luong-co-ban">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card bg-light text-center h-100">
+                                <div class="card-body py-3">
+                                    <h6 class="card-title text-muted small mb-1">Lương Overtime</h6>
+                                    <h4 class="text-warning mb-0" id="luong-overtime">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card bg-light text-center h-100">
+                                <div class="card-body py-3">
+                                    <h6 class="card-title text-muted small mb-1">Tổng Lương</h6>
+                                    <h4 class="text-info mb-0" id="tong-luong-du-tinh">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bảng chi tiết theo ngày -->
+                    <div class="table-container">
+                        <table class="table table-hover table-responsive-fit">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="col-date">Ngày</th>
+                                    <th class="col-time d-none d-md-table-cell">Giờ Bắt Đầu</th>
+                                    <th class="col-time d-none d-md-table-cell">Giờ Kết Thúc</th>
+                                    <th class="col-hours">Tổng Giờ</th>
+                                    <th class="col-hours d-none d-sm-table-cell">Giờ Cơ Bản</th>
+                                    <th class="col-hours d-none d-sm-table-cell">Overtime</th>
+                                    <th class="col-salary">Lương</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bang-thong-ke-luong">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="spinner-border text-info" role="status">
+                                            <span class="visually-hidden">Đang tải...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bài tập sắp hết hạn và Ghi chú quan trọng -->
+    <div class="dashboard-row row g-4 mb-4">
+        <!-- Bài tập sắp hết hạn -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Bài Tập Sắp Hết Hạn
+                    </h5>
+                    <a href="/hoc-tap" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>Thêm
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div id="bai-tap-sap-han">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ghi chú quan trọng -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-star text-warning me-2"></i>
+                        Ghi Chú Quan Trọng
+                    </h5>
+                    <a href="/ghi-chu" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-plus me-1"></i>Thêm
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div id="ghi-chu-quan-trong">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-success" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Thao tác nhanh -->
+    <div class="dashboard-row row g-4 mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt text-primary me-2"></i>
+                        Thao Tác Nhanh
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <button class="btn btn-outline-success w-100 h-100" onclick="mo_modal_them_thu()">
+                                <i class="fas fa-plus-circle d-block mb-2 fa-2x"></i>
+                                <span class="fw-semibold">Thêm Thu Nhập</span>
+                                <small class="d-block text-muted">Ghi nhận thu nhập mới</small>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-danger w-100 h-100" onclick="mo_modal_them_chi()">
+                                <i class="fas fa-minus-circle d-block mb-2 fa-2x"></i>
+                                <span class="fw-semibold">Thêm Chi Tiêu</span>
+                                <small class="d-block text-muted">Ghi nhận chi tiêu mới</small>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <a href="/hoc-tap" class="btn btn-outline-primary w-100 h-100 text-decoration-none">
+                                <i class="fas fa-graduation-cap d-block mb-2 fa-2x"></i>
+                                <span class="fw-semibold">Thêm Bài Tập</span>
+                                <small class="d-block text-muted">Quản lý bài tập học</small>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="/ghi-chu" class="btn btn-outline-info w-100 h-100 text-decoration-none">
+                                <i class="fas fa-sticky-note d-block mb-2 fa-2x"></i>
+                                <span class="fw-semibold">Thêm Ghi Chú</span>
+                                <small class="d-block text-muted">Ghi chú quan trọng</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm thu nhập -->
+<div class="modal fade" id="modalThemThu" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>Thêm Thu Nhập
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formThemThu">
+                    <div class="mb-3">
+                        <label class="form-label">Tiêu đề</label>
+                        <input type="text" class="form-control" name="tieu_de" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số tiền</label>
+                        <input type="number" class="form-control" name="so_tien" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Danh mục</label>
+                        <select class="form-select" name="danh_muc" required>
+                            <option value="">Chọn danh mục</option>
+                            <option value="Lương">Lương</option>
+                            <option value="Thưởng">Thưởng</option>
+                            <option value="Kinh doanh">Kinh doanh</option>
+                            <option value="Đầu tư">Đầu tư</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày</label>
+                        <input type="date" class="form-control" name="ngay_giao_dich" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" name="mo_ta" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="luu_thu_nhap()">
+                    <i class="fas fa-save me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm chi tiêu -->
+<div class="modal fade" id="modalThemChi" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-minus-circle me-2"></i>Thêm Chi Tiêu
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formThemChi">
+                    <div class="mb-3">
+                        <label class="form-label">Tiêu đề</label>
+                        <input type="text" class="form-control" name="tieu_de" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số tiền</label>
+                        <input type="number" class="form-control" name="so_tien" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Danh mục</label>
+                        <select class="form-select" name="danh_muc" required>
+                            <option value="">Chọn danh mục</option>
+                            <option value="Ăn uống">Ăn uống</option>
+                            <option value="Di chuyển">Di chuyển</option>
+                            <option value="Mua sắm">Mua sắm</option>
+                            <option value="Giải trí">Giải trí</option>
+                            <option value="Y tế">Y tế</option>
+                            <option value="Học tập">Học tập</option>
+                            <option value="Hóa đơn">Hóa đơn</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày</label>
+                        <input type="date" class="form-control" name="ngay_giao_dich" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" name="mo_ta" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="luu_chi_tieu()">
+                    <i class="fas fa-save me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/trang_chu.js') }}"></script>
+<script>
+    // Khởi tạo khi trang load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Chỉ khởi tạo một lần
+        if (!window.dashboardLoaded) {
+            window.dashboardLoaded = true;
+            khoi_tao_dashboard_moi();
+        }
+        
+        // Set ngày mặc định cho forms
+        const hom_nay = new Date().toISOString().split('T')[0];
+        document.querySelectorAll('input[type="date"]').forEach(input => {
+            if (!input.value) {
+                input.value = hom_nay;
+            }
+        });
+    });
+
+    /**
+     * Khởi tạo dashboard mới với API tổng hợp
+     */
+    async function khoi_tao_dashboard_moi() {
+        try {
+            // Hiển thị loading
+            hien_thi_loading(true);
+            
+            // Gọi API dashboard tổng hợp
+            const response = await fetch('/api/dashboard');
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                const data = result.du_lieu;
+                
+                // 1. Cập nhật thống kê thu chi
+                if (data.thong_ke_thu_chi) {
+                    const stats = data.thong_ke_thu_chi;
+                    cap_nhat_element_currency('tong-thu', stats.tong_thu_thang);
+                    cap_nhat_element_currency('tong-chi', stats.tong_chi_thang);
+                    cap_nhat_element_currency('so-du', stats.so_du);
+                    cap_nhat_element_currency('thu-hom-nay', stats.thu_hom_nay);
+                    cap_nhat_element_currency('chi-hom-nay', stats.chi_hom_nay);
+                }
+                
+                // 2. Hiển thị bài tập sắp hết hạn
+                if (data.bai_tap_sap_han) {
+                    hien_thi_bai_tap_sap_han(data.bai_tap_sap_han);
+                }
+                
+                // 3. Hiển thị ghi chú quan trọng
+                if (data.ghi_chu_quan_trong) {
+                    hien_thi_ghi_chu_quan_trong(data.ghi_chu_quan_trong);
+                }
+                
+                // 4. Khởi tạo date picker và tạo biểu đồ xu hướng
+                khoi_tao_date_picker();
+                await cap_nhat_bieu_do_xu_huong_theo_ngay(); // Mặc định với date picker
+                
+                // 5. Tải thống kê lương với date picker
+                await cap_nhat_thong_ke_luong_theo_ngay();
+                
+                console.log('✅ Đã tải dashboard thành công');
+                
+            } else {
+                throw new Error(result.loi || 'Lỗi không xác định');
+            }
+            
+        } catch (error) {
+            console.error('❌ Lỗi khởi tạo dashboard:', error);
+            hien_thi_thong_bao('Lỗi tải dữ liệu dashboard: ' + error.message, 'danger');
+        } finally {
+            // Ẩn loading
+            hien_thi_loading(false);
+        }
+    }
+
+    /**
+     * Hiển thị giao dịch gần đây
+     */
+    function hien_thi_giao_dich_gan_day(giao_dich_list) {
+        const container = document.getElementById('giao-dich-gan-day');
+        if (!container) return;
+        
+        if (!giao_dich_list || giao_dich_list.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p>Chưa có giao dịch nào</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const html = giao_dich_list.map(gd => {
+            const icon = gd.loai === 'thu' ? 'plus-circle text-success' : 'minus-circle text-danger';
+            const mau_so_tien = gd.loai === 'thu' ? 'text-success' : 'text-danger';
+            const dau = gd.loai === 'thu' ? '+' : '-';
+            
+            return `
+                <div class="d-flex align-items-center mb-3 p-2 border rounded bg-light">
+                    <div class="me-3">
+                        <i class="fas fa-${icon} fa-lg"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">${gd.tieu_de || gd.danh_muc}</h6>
+                        <small class="text-muted">${dinh_dang_ngay(gd.ngay_giao_dich)}</small>
+                        ${gd.mo_ta ? `<p class="mb-0 small text-muted">${gd.mo_ta}</p>` : ''}
+                    </div>
+                    <div class="text-end">
+                        <span class="fw-bold ${mau_so_tien}">${dau}${dinh_dang_tien(gd.so_tien)}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = html;
+    }
+
+    /**
+     * Hiển thị bài tập sắp hết hạn
+     */
+    function hien_thi_bai_tap_sap_han(bai_tap_list) {
+        const container = document.getElementById('bai-tap-sap-han');
+        if (!container) return;
+        
+        if (!bai_tap_list || bai_tap_list.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <p>Không có bài tập sắp hết hạn</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const html = bai_tap_list.map(bt => {
+            const ngay_con_lai = tinh_ngay_con_lai(bt.han_nop);
+            let mau_muc_do = 'primary';
+            let icon_muc_do = 'fas fa-book';
+            
+            if (ngay_con_lai <= 0) {
+                mau_muc_do = 'danger';
+                icon_muc_do = 'fas fa-exclamation-triangle';
+            } else if (ngay_con_lai === 1) {
+                mau_muc_do = 'warning';
+                icon_muc_do = 'fas fa-clock';
+            }
+            
+            const ngay_con_lai_text = ngay_con_lai <= 0 ? 'Quá hạn' : 
+                                     ngay_con_lai === 1 ? 'Hôm nay' : 
+                                     `${ngay_con_lai} ngày`;
+            
+            return `
+                <div class="d-flex align-items-center mb-3 p-3 border-start border-4 border-${mau_muc_do} bg-light rounded">
+                    <div class="me-3">
+                        <i class="${icon_muc_do} text-${mau_muc_do} fa-lg"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1 fw-bold">${bt.ten}</h6>
+                                <small class="text-muted">${bt.mon}</small>
+                            </div>
+                            <span class="badge bg-${mau_muc_do}">${ngay_con_lai_text}</span>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-${mau_muc_do} fw-semibold">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Hạn: ${dinh_dang_ngay(bt.han_nop)}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = html;
+    }
+
+    /**
+     * Hiển thị ghi chú quan trọng
+     */
+    function hien_thi_ghi_chu_quan_trong(ghi_chu_list) {
+        const container = document.getElementById('ghi-chu-quan-trong');
+        if (!container) return;
+        
+        if (!ghi_chu_list || ghi_chu_list.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-sticky-note fa-2x mb-2"></i>
+                    <p>Không có ghi chú quan trọng</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const html = ghi_chu_list.map(gc => {
+            let mau_muc_do = 'warning';
+            let icon_muc_do = 'fas fa-star';
+            
+            if (gc.muc_do_uu_tien === 'cao') {
+                mau_muc_do = 'danger';
+                icon_muc_do = 'fas fa-exclamation-circle';
+            }
+            
+            return `
+                <div class="d-flex align-items-start mb-3 p-3 border-start border-4 border-${mau_muc_do} bg-light rounded">
+                    <div class="me-3 mt-1">
+                        <i class="${icon_muc_do} text-${mau_muc_do} fa-lg"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-bold">${gc.tieu_de}</h6>
+                        <p class="mb-2 text-muted small">${gc.noi_dung}</p>
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            ${dinh_dang_ngay(gc.ngay_tao)}
+                        </small>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = html;
+    }
+
+    /**
+     * Hiển thị loading
+     */
+    function hien_thi_loading(show) {
+        if (show) {
+            document.querySelectorAll('.card-body').forEach(card => {
+                if (!card.querySelector('.loading-placeholder')) {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'loading-placeholder text-center py-4';
+                    placeholder.innerHTML = `
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Đang tải...</p>
+                    `;
+                    card.appendChild(placeholder);
+                }
+            });
+        } else {
+            document.querySelectorAll('.loading-placeholder').forEach(el => el.remove());
+        }
+    }
+
+    /**
+     * Tính số ngày còn lại
+     */
+    function tinh_ngay_con_lai(ngay_han) {
+        const han = new Date(ngay_han);
+        const hom_nay = new Date();
+        const diff = han.getTime() - hom_nay.getTime();
+        return Math.ceil(diff / (1000 * 3600 * 24));
+    }
+
+    /**
+     * Tạo biểu đồ xu hướng thu chi với dữ liệu thật
+     */
+    async function tao_bieu_do_xu_huong(tu_ngay = null, den_ngay = null) {
+        const canvas = document.getElementById('bieu-do-xu-huong');
+        if (!canvas) return;
+        
+        try {
+            // Xóa chart cũ
+            if (window.chartXuHuong && typeof window.chartXuHuong.destroy === 'function') {
+                window.chartXuHuong.destroy();
+            }
+            
+            // Xác định khoảng thời gian
+            let ngay_bat_dau, ngay_ket_thuc;
+            
+            if (tu_ngay && den_ngay) {
+                ngay_bat_dau = new Date(tu_ngay);
+                ngay_ket_thuc = new Date(den_ngay);
+            } else {
+                // Mặc định 7 ngày gần nhất
+                ngay_ket_thuc = new Date();
+                ngay_bat_dau = new Date();
+                ngay_bat_dau.setDate(ngay_ket_thuc.getDate() - 6);
+            }
+            
+            // Lấy dữ liệu thật từ API
+            const response = await fetch(`/api/thu-chi?tu_ngay=${ngay_bat_dau.toISOString().split('T')[0]}&den_ngay=${ngay_ket_thuc.toISOString().split('T')[0]}`);
+            const result = await response.json();
+            
+            if (!result.thanh_cong) {
+                throw new Error(result.loi || 'Lỗi lấy dữ liệu');
+            }
+            
+            const du_lieu_thu_chi = result.du_lieu || [];
+            
+            // Tạo mảng ngày và nhóm dữ liệu theo ngày
+            const labels = [];
+            const thu_data = [];
+            const chi_data = [];
+            const so_du_data = [];
+            
+            const so_ngay = Math.ceil((ngay_ket_thuc - ngay_bat_dau) / (1000 * 60 * 60 * 24)) + 1;
+            
+            for (let i = 0; i < so_ngay; i++) {
+                const ngay = new Date(ngay_bat_dau);
+                ngay.setDate(ngay_bat_dau.getDate() + i);
+                const ngay_str = ngay.toISOString().split('T')[0];
+                
+                labels.push(ngay.toLocaleDateString('vi-VN', { 
+                    weekday: 'short', 
+                    day: 'numeric',
+                    month: 'short' 
+                }));
+                
+                // Tính tổng thu/chi cho ngày này
+                let tong_thu = 0;
+                let tong_chi = 0;
+                
+                du_lieu_thu_chi.forEach(item => {
+                    if (item.ngay_giao_dich === ngay_str) {
+                        const so_tien = parseFloat(item.so_tien || 0);
+                        if (item.loai === 'thu') {
+                            tong_thu += so_tien;
+                        } else if (item.loai === 'chi') {
+                            tong_chi += so_tien;
+                        }
+                    }
+                });
+                
+                thu_data.push(tong_thu);
+                chi_data.push(tong_chi);
+                so_du_data.push(tong_thu - tong_chi);
+            }
+
+            const ctx = canvas.getContext('2d');
+            window.chartXuHuong = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Thu nhập',
+                            data: thu_data,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: 'Chi tiêu',
+                            data: chi_data,
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        },
+                        {
+                            label: 'Số dư',
+                            data: so_du_data,
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            tension: 0.4,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: 10
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + dinh_dang_tien(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return dinh_dang_tien(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Đảm bảo biểu đồ resize đúng cách
+            setTimeout(() => {
+                if (window.chartXuHuong) {
+                    window.chartXuHuong.resize();
+                }
+            }, 100);
+            
+        } catch (error) {
+            console.error('❌ Lỗi tạo biểu đồ xu hướng:', error);
+            
+            // Hiển thị thông báo lỗi trong canvas
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#6c757d';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Không thể tải dữ liệu biểu đồ', canvas.width / 2, canvas.height / 2);
+        }
+    }
+
+    /**
+     * Cập nhật biểu đồ xu hướng theo ngày được chọn
+     */
+    async function cap_nhat_bieu_do_xu_huong_theo_ngay() {
+        const tu_ngay = document.getElementById('tu-ngay-xu-huong').value;
+        const den_ngay = document.getElementById('den-ngay-xu-huong').value;
+        
+        if (!tu_ngay || !den_ngay) {
+            hien_thi_thong_bao('Vui lòng chọn đầy đủ từ ngày và đến ngày', 'warning');
+            return;
+        }
+        
+        if (new Date(tu_ngay) > new Date(den_ngay)) {
+            hien_thi_thong_bao('Từ ngày không thể lớn hơn đến ngày', 'warning');
+            return;
+        }
+        
+        await tao_bieu_do_xu_huong(tu_ngay, den_ngay);
+    }
+
+    /**
+     * Khởi tạo giá trị mặc định cho date picker
+     */
+    function khoi_tao_date_picker() {
+        const ngay_hien_tai = new Date();
+        const tu_ngay = new Date();
+        tu_ngay.setDate(ngay_hien_tai.getDate() - 6);
+        
+        // Date picker cho xu hướng thu chi
+        document.getElementById('tu-ngay-xu-huong').value = tu_ngay.toISOString().split('T')[0];
+        document.getElementById('den-ngay-xu-huong').value = ngay_hien_tai.toISOString().split('T')[0];
+        
+        // Date picker cho thống kê lương (mặc định tuần này)
+        const dau_tuan = new Date();
+        const ngay_hien_tai_trong_tuan = dau_tuan.getDay() === 0 ? 6 : dau_tuan.getDay() - 1; // Thứ 2 = 0
+        dau_tuan.setDate(dau_tuan.getDate() - ngay_hien_tai_trong_tuan);
+        
+        document.getElementById('tu-ngay-luong').value = dau_tuan.toISOString().split('T')[0];
+        document.getElementById('den-ngay-luong').value = ngay_hien_tai.toISOString().split('T')[0];
+    }
+
+    /**
+     * Cập nhật thống kê lương theo ngày được chọn
+     */
+    async function cap_nhat_thong_ke_luong_theo_ngay() {
+        const tu_ngay = document.getElementById('tu-ngay-luong').value;
+        const den_ngay = document.getElementById('den-ngay-luong').value;
+        
+        if (!tu_ngay || !den_ngay) {
+            hien_thi_thong_bao('Vui lòng chọn đầy đủ từ ngày và đến ngày', 'warning');
+            return;
+        }
+        
+        if (new Date(tu_ngay) > new Date(den_ngay)) {
+            hien_thi_thong_bao('Từ ngày không thể lớn hơn đến ngày', 'warning');
+            return;
+        }
+        
+        try {
+            // Gọi API thống kê lương với khoảng thời gian tùy chỉnh
+            const response = await fetch(`/api/thong-ke-luong?tu_ngay=${tu_ngay}&den_ngay=${den_ngay}`);
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                hien_thi_thong_ke_luong(result.du_lieu);
+            } else {
+                throw new Error(result.loi || 'Lỗi không xác định');
+            }
+            
+        } catch (error) {
+            console.error('❌ Lỗi cập nhật thống kê lương:', error);
+            hien_thi_thong_bao('Lỗi tải thống kê lương: ' + error.message, 'danger');
+        }
+    }
+
+    /**
+     * Hiển thị dữ liệu thống kê lương
+     */
+    function hien_thi_thong_ke_luong(data) {
+        // Cập nhật tổng quan
+        document.getElementById('tong-gio-lam').textContent = data.tong_gio_lam + 'h';
+        document.getElementById('luong-co-ban').textContent = dinh_dang_tien(data.luong_co_ban);
+        document.getElementById('luong-overtime').textContent = dinh_dang_tien(data.luong_overtime);
+        document.getElementById('tong-luong-du-tinh').textContent = dinh_dang_tien(data.tong_luong);
+        
+        // Cập nhật bảng chi tiết
+        hien_thi_bang_thong_ke_luong(data.chi_tiet_theo_ngay);
+    }
+
+    /**
+     * Hiển thị bảng thống kê lương chi tiết
+     */
+    function hien_thi_bang_thong_ke_luong(chi_tiet_list) {
+        const tbody = document.getElementById('bang-thong-ke-luong');
+        if (!tbody) return;
+        
+        if (!chi_tiet_list || chi_tiet_list.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">
+                        <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                        <p>Chưa có dữ liệu lương trong kỳ này</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        const html = chi_tiet_list.map(item => {
+            const overtime_class = item.gio_overtime > 0 ? 'text-warning fw-bold' : 'text-muted';
+            const luong_class = item.luong_du_tinh > 1000000 ? 'text-success fw-bold' : '';
+            
+            // Format ngày cho responsive
+            const ngay_format = new Date(item.ngay);
+            const ngay_ngan = ngay_format.toLocaleDateString('vi-VN', { 
+                day: '2-digit', 
+                month: '2-digit' 
+            });
+            const thu = ngay_format.toLocaleDateString('vi-VN', { weekday: 'short' });
+            
+            return `
+                <tr>
+                    <td class="col-date text-truncate-custom">
+                        <div class="d-block">
+                            <span class="fw-semibold d-md-none">${ngay_ngan}</span>
+                            <span class="fw-semibold d-none d-md-inline">${dinh_dang_ngay(item.ngay)}</span>
+                        </div>
+                        <small class="text-muted d-block d-md-none">${thu}</small>
+                        <small class="text-muted d-none d-md-block">${thu}</small>
+                    </td>
+                    <td class="col-time d-none d-md-table-cell text-truncate-custom">${item.gio_bat_dau || '-'}</td>
+                    <td class="col-time d-none d-md-table-cell text-truncate-custom">${item.gio_ket_thuc || '-'}</td>
+                    <td class="col-hours text-truncate-custom">
+                        <span class="badge bg-primary">${item.tong_gio}h</span>
+                    </td>
+                    <td class="col-hours d-none d-sm-table-cell text-truncate-custom">${item.gio_co_ban}h</td>
+                    <td class="col-hours d-none d-sm-table-cell text-truncate-custom">
+                        <span class="${overtime_class}">${item.gio_overtime}h</span>
+                    </td>
+                    <td class="col-salary text-truncate-custom ${luong_class}">
+                        ${dinh_dang_tien(item.luong_du_tinh)}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        tbody.innerHTML = html;
+    }
+
+    /**
+     * Tải thống kê thu chi mới
+     */
+    async function tai_thong_ke_thu_chi_moi() {
+        try {
+            const response = await fetch('/api/thu-chi/thong-ke');
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                const stats = result.du_lieu;
+                
+                // Cập nhật các cards
+                cap_nhat_element_currency('tong-thu', stats.tong_thu_thang);
+                cap_nhat_element_currency('tong-chi', stats.tong_chi_thang);
+                cap_nhat_element_currency('so-du', stats.so_du);
+                cap_nhat_element_currency('thu-hom-nay', stats.thu_hom_nay);
+                cap_nhat_element_currency('chi-hom-nay', stats.chi_hom_nay);
+                
+                // Tính toán tỷ lệ tiết kiệm
+                const ty_le_tiet_kiem = stats.tong_thu_thang > 0 ? 
+                    Math.round((stats.so_du / stats.tong_thu_thang) * 100) : 0;
+                document.getElementById('ty-le-tiet-kiem').textContent = ty_le_tiet_kiem;
+            }
+        } catch (error) {
+            console.error('❌ Lỗi tải thống kê thu chi:', error);
+        }
+    }
+
+    /**
+     * Tải bài tập sắp hết hạn
+     */
+    async function tai_bai_tap_sap_het_han() {
+        const container = document.getElementById('bai-tap-sap-het-han');
+        
+        try {
+            // Dữ liệu mẫu - sẽ thay bằng API thực
+            const bai_tap_mau = [
+                { 
+                    ten: 'Bài tập Toán cao cấp', 
+                    mon: 'Toán học', 
+                    han_nop: '2025-08-08', 
+                    muc_do: 'cao',
+                    hoan_thanh: false
+                },
+                { 
+                    ten: 'Essay Tiếng Anh', 
+                    mon: 'Tiếng Anh', 
+                    han_nop: '2025-08-10', 
+                    muc_do: 'trung-binh',
+                    hoan_thanh: false
+                },
+                { 
+                    ten: 'Báo cáo Vật lý', 
+                    mon: 'Vật lý', 
+                    han_nop: '2025-08-12', 
+                    muc_do: 'cao',
+                    hoan_thanh: false
+                }
+            ];
+
+            if (bai_tap_mau.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Không có bài tập sắp hết hạn</p>
+                        <a href="/hoc-tap" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Thêm Bài Tập
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = bai_tap_mau.map(bt => {
+                const mau_muc_do = bt.muc_do === 'cao' ? 'danger' : 
+                                   bt.muc_do === 'trung-binh' ? 'warning' : 'success';
+                const ngay_con_lai = tinh_ngay_con_lai(bt.han_nop);
+                const icon_muc_do = bt.muc_do === 'cao' ? 'fas fa-exclamation-triangle' : 
+                                   bt.muc_do === 'trung-binh' ? 'fas fa-clock' : 'fas fa-check-circle';
+                
+                return `
+                    <div class="d-flex align-items-center mb-3 p-3 border-start border-4 border-${mau_muc_do} bg-light rounded">
+                        <div class="flex-shrink-0">
+                            <i class="${icon_muc_do} text-${mau_muc_do} fa-lg"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">${bt.ten}</h6>
+                                    <small class="text-muted">${bt.mon}</small>
+                                </div>
+                                <span class="badge bg-${mau_muc_do}">${ngay_con_lai}</span>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-${mau_muc_do} fw-semibold">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Hạn: ${dinh_dang_ngay(bt.han_nop)}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('❌ Lỗi tải bài tập:', error);
+            container.innerHTML = `
+                <div class="text-center py-4 text-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <p>Không thể tải bài tập</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Tải ghi chú quan trọng mới
+     */
+    async function tai_ghi_chu_quan_trong_moi() {
+        const container = document.getElementById('ghi-chu-quan-trong');
+        
+        try {
+            // Dữ liệu mẫu - sẽ thay bằng API thực
+            const ghi_chu_mau = [
+                {
+                    tieu_de: 'Họp phụ huynh',
+                    noi_dung: 'Nhớ tham gia họp phụ huynh vào thứ 7 tuần sau lúc 8h sáng',
+                    ngay_tao: '2025-08-05',
+                    muc_do: 'cao'
+                },
+                {
+                    tieu_de: 'Mua quà sinh nhật',
+                    noi_dung: 'Sinh nhật bạn An vào chủ nhật, cần chuẩn bị quà',
+                    ngay_tao: '2025-08-04',
+                    muc_do: 'trung-binh'
+                },
+                {
+                    tieu_de: 'Đăng ký khóa học',
+                    noi_dung: 'Deadline đăng ký khóa học online là 15/8',
+                    ngay_tao: '2025-08-03',
+                    muc_do: 'cao'
+                }
+            ];
+
+            if (ghi_chu_mau.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-sticky-note fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Không có ghi chú quan trọng</p>
+                        <a href="/ghi-chu" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-plus me-1"></i>Thêm Ghi Chú
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = ghi_chu_mau.map(gc => {
+                const mau_muc_do = gc.muc_do === 'cao' ? 'warning' : 'info';
+                const icon_muc_do = gc.muc_do === 'cao' ? 'fas fa-star' : 'fas fa-sticky-note';
+                
+                return `
+                    <div class="d-flex align-items-start mb-3 p-3 border-start border-4 border-${mau_muc_do} bg-light rounded">
+                        <div class="flex-shrink-0">
+                            <i class="${icon_muc_do} text-${mau_muc_do} fa-lg"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1 fw-bold">${gc.tieu_de}</h6>
+                            <p class="mb-2 text-muted small">${gc.noi_dung}</p>
+                            <small class="text-secondary">
+                                <i class="fas fa-calendar me-1"></i>
+                                ${dinh_dang_ngay(gc.ngay_tao)}
+                            </small>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('❌ Lỗi tải ghi chú:', error);
+            container.innerHTML = `
+                <div class="text-center py-4 text-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <p>Không thể tải ghi chú</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Tải giao dịch gần đây
+     */
+    async function tai_giao_dich_gan_day() {
+        const container = document.getElementById('giao-dich-gan-day');
+        
+        try {
+            const response = await fetch('/api/thu-chi?limit=5');
+            const result = await response.json();
+            
+            if (result.thanh_cong && result.du_lieu.length > 0) {
+                container.innerHTML = result.du_lieu.map(gd => {
+                    const icon = gd.loai === 'thu' ? 'fas fa-arrow-up text-success' : 'fas fa-arrow-down text-danger';
+                    const mau = gd.loai === 'thu' ? 'success' : 'danger';
+                    
+                    return `
+                        <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="${icon} fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">${gd.tieu_de}</h6>
+                                    <small class="text-muted">${gd.danh_muc} • ${dinh_dang_ngay(gd.ngay_giao_dich)}</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold text-${mau}" data-currency="${gd.so_tien}">
+                                    ${gd.loai === 'thu' ? '+' : '-'}${dinh_dang_tien(gd.so_tien)}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Chưa có giao dịch nào</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('❌ Lỗi tải giao dịch:', error);
+            container.innerHTML = `
+                <div class="text-center py-4 text-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <p>Không thể tải giao dịch</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Utility functions
+     */
+    function dinh_dang_tien(so_tien) {
+        // Sử dụng hệ thống cài đặt tiền tệ mới
+        if (window.dinh_dang_tien_te) {
+            return window.dinh_dang_tien_te(so_tien);
+        }
+        
+        // Fallback nếu chưa load tien_te.js
+        try {
+            const cai_dat = JSON.parse(localStorage.getItem('cai_dat_tien_te')) || { don_vi: 'VND' };
+            const don_vi = cai_dat.don_vi;
+            
+            const formatters = {
+                'VND': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }),
+                'JPY': new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }),
+                'USD': new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }),
+                'EUR': new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' })
+            };
+            
+            const formatter = formatters[don_vi] || formatters['VND'];
+            return formatter.format(so_tien);
+        } catch (error) {
+            return so_tien.toLocaleString('vi-VN') + 'đ';
+        }
+    }
+    
+    function cap_nhat_element_currency(id, so_tien) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = dinh_dang_tien(so_tien);
+            element.setAttribute('data-currency', so_tien);
+        }
+    }
+
+    function dinh_dang_ngay(ngay_str) {
+        const ngay = new Date(ngay_str);
+        return ngay.toLocaleDateString('vi-VN');
+    }
+
+    function tinh_ngay_con_lai(ngay_target) {
+        const hom_nay = new Date();
+        const ngay_het_han = new Date(ngay_target);
+        const chenh_lech = Math.ceil((ngay_het_han - hom_nay) / (1000 * 60 * 60 * 24));
+        
+        if (chenh_lech < 0) {
+            return 'Quá hạn';
+        } else if (chenh_lech === 0) {
+            return 'Hôm nay';
+        } else if (chenh_lech === 1) {
+            return 'Ngày mai';
+        } else {
+            return `${chenh_lech} ngày`;
+        }
+    }
+
+    /**
+     * Modal functions
+     */
+    function mo_modal_them_thu() {
+        const modal = new bootstrap.Modal(document.getElementById('modalThemThu'));
+        modal.show();
+    }
+
+    function mo_modal_them_chi() {
+        const modal = new bootstrap.Modal(document.getElementById('modalThemChi'));
+        modal.show();
+    }
+
+    async function luu_thu_nhap() {
+        const form = document.getElementById('formThemThu');
+        const formData = new FormData(form);
+        
+        const du_lieu = {
+            loai: 'thu',
+            tieu_de: formData.get('tieu_de'),
+            so_tien: parseFloat(formData.get('so_tien')),
+            danh_muc: formData.get('danh_muc'),
+            ngay_giao_dich: formData.get('ngay_giao_dich'),
+            mo_ta: formData.get('mo_ta')
+        };
+
+        try {
+            const response = await fetch('/api/thu-chi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(du_lieu)
+            });
+
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                bootstrap.Modal.getInstance(document.getElementById('modalThemThu')).hide();
+                form.reset();
+                hien_thi_thong_bao('Đã thêm thu nhập thành công!', 'success');
+                
+                // Refresh data
+                await tai_thong_ke_thu_chi_moi();
+                await tai_giao_dich_gan_day();
+            } else {
+                hien_thi_thong_bao(result.loi, 'danger');
+            }
+        } catch (error) {
+            hien_thi_thong_bao('Có lỗi xảy ra', 'danger');
+        }
+    }
+
+    async function luu_chi_tieu() {
+        const form = document.getElementById('formThemChi');
+        const formData = new FormData(form);
+        
+        const du_lieu = {
+            loai: 'chi',
+            tieu_de: formData.get('tieu_de'),
+            so_tien: parseFloat(formData.get('so_tien')),
+            danh_muc: formData.get('danh_muc'),
+            ngay_giao_dich: formData.get('ngay_giao_dich'),
+            mo_ta: formData.get('mo_ta')
+        };
+
+        try {
+            const response = await fetch('/api/thu-chi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(du_lieu)
+            });
+
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                bootstrap.Modal.getInstance(document.getElementById('modalThemChi')).hide();
+                form.reset();
+                hien_thi_thong_bao('Đã thêm chi tiêu thành công!', 'success');
+                
+                // Refresh data
+                await tai_thong_ke_thu_chi_moi();
+                await tai_giao_dich_gan_day();
+            } else {
+                hien_thi_thong_bao(result.loi, 'danger');
+            }
+        } catch (error) {
+            hien_thi_thong_bao('Có lỗi xảy ra', 'danger');
+        }
+    }
+    
+    // Lắng nghe sự kiện thay đổi tiền tệ
+    window.addEventListener('tien_te_thay_doi', function(event) {
+        console.log('🔄 Tiền tệ đã thay đổi trên dashboard, cập nhật hiển thị:', event.detail);
+        refresh_dashboard();
+    });
+    
+    /**
+     * Refresh dashboard data
+     */
+    function refresh_dashboard() {
+        console.log('🔄 Refresh dashboard...');
+        khoi_tao_dashboard_moi();
+    }
+    
+    // Export function để có thể gọi từ external
+    window.refreshDashboard = refresh_dashboard;
+</script>
+
+<!-- Script tiền tệ -->
+<script src="{{ url_for('static', filename='js/tien_te.js') }}"></script>
+{% endblock %}

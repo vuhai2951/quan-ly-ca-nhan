@@ -1,0 +1,4336 @@
+﻿{% extends "base.html" %}
+
+{% block tieu_de %}Quản Lý Công Việc{% endblock %}
+
+{% block extra_css %}
+<style>
+/* CSS responsive cho bảng công việc */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-width: 100%;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    width: 100% !important;
+    margin-bottom: 0;
+    min-width: 600px; /* Đảm bảo bảng có width tối thiểu */
+    box-sizing: border-box;
+}
+
+.table th,
+.table td {
+    box-sizing: border-box;
+    word-wrap: break-word;
+    white-space: nowrap;
+    padding: 0.5rem;
+}
+
+/* Thiết kế responsive cho mobile - cho phép cuộn ngang */
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+        max-height: 45vh;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
+    
+    .table {
+        min-width: 700px; /* Tăng width tối thiểu cho mobile */
+        table-layout: auto;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.4rem 0.6rem !important;
+        font-size: 0.8rem !important;
+        line-height: 1.3;
+        white-space: nowrap;
+        min-width: 80px; /* Width tối thiểu cho mỗi cột */
+    }
+    
+    /* Các cột quan trọng có width rộng hơn */
+    .table th:nth-child(4), /* Địa điểm */
+    .table td:nth-child(4) {
+        min-width: 120px;
+    }
+    
+    .table th:nth-child(5), /* Mô tả */
+    .table td:nth-child(5) {
+        min-width: 150px;
+    }
+    
+    .card {
+        max-width: calc(100vw - 1rem) !important;
+        overflow: visible !important;
+    }
+    
+    .btn {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .table {
+        min-width: 650px; /* Giữ width đủ rộng cho mobile nhỏ */
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.3rem 0.5rem !important;
+        font-size: 0.75rem !important;
+        min-width: 70px;
+    }
+}
+
+/* Custom scrollbar cho mobile */
+.table-responsive::-webkit-scrollbar,
+.table-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track,
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Indicator để người dùng biết có thể cuộn */
+@media (max-width: 768px) {
+    .table-container {
+        position: relative;
+    }
+    
+    .table-container::after {
+        content: "← Vuốt để xem thêm →";
+        position: absolute;
+        bottom: -20px;
+        right: 10px;
+        font-size: 0.7rem;
+        color: #6c757d;
+        pointer-events: none;
+    }
+    
+    /* CSS riêng cho bảng thống kê */
+    .card .table-responsive {
+        position: relative;
+    }
+    
+    .card .table-responsive::after {
+        content: "← Vuốt để xem thêm →";
+        position: absolute;
+        bottom: -18px;
+        right: 10px;
+        font-size: 0.7rem;
+        color: #6c757d;
+        pointer-events: none;
+    }
+    
+    /* Đảm bảo bảng thống kê có scrollbar rõ ràng */
+    .card .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        overflow-x: auto !important;
+        max-height: 50vh;
+    }
+    
+    .card .table {
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+    
+    .card .table th,
+    .card .table td {
+        white-space: nowrap !important;
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+/* Đảm bảo chỉ tab active hiển thị */
+.tab-pane {
+    display: none !important;
+}
+
+.tab-pane.show.active {
+    display: block !important;
+}
+
+/* Đảm bảo nội dung trong tab được hiển thị bình thường */
+.tab-pane.show.active #danh-sach-cong-viec {
+    display: block !important;
+}
+</style>
+{% endblock %}
+
+{% block noi_dung %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 text-primary">
+                <i class="fas fa-briefcase me-2"></i>
+                <span>Quản Lý Công Việc</span>
+            </h1>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4" id="cong-viec-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#quan-ly-cong-viec" type="button">
+                <i class="fas fa-briefcase me-1"></i><span>Công Việc</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#google-calendar" type="button">
+                <i class="fab fa-google me-1"></i>Google Calendar
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#thong-ke" type="button">
+                <i class="fas fa-chart-bar me-1"></i>Thống Kê
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="cong-viec-content">
+        <!-- Tab Quản lý công việc -->
+        <div class="tab-pane fade show active" id="quan-ly-cong-viec" role="tabpanel">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
+                <h5 class="mb-0 mb-md-0">Danh Sách Công Việc</h5>
+                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modal-them-cong-viec">
+                    <i class="fas fa-plus me-1"></i>Thêm Công Việc
+                </button>
+            </div>
+            
+            <div class="row" id="danh-sach-cong-viec">
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-warning" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Google Calendar -->
+        <div class="tab-pane fade" id="google-calendar" role="tabpanel">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
+                <h5 class="mb-0 mb-md-0">Đồng Bộ Google Calendar</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button id="btn-dang-nhap-google" class="btn btn-success btn-sm" onclick="dang_nhap_google()">
+                        <i class="fab fa-google me-1"></i>Kết nối
+                    </button>
+                    <button id="btn-dang-xuat-google" class="btn btn-outline-danger btn-sm" style="display:none" onclick="dang_xuat_google()">
+                        <i class="fas fa-unlink me-1"></i>Ngắt
+                    </button>
+                    <button id="btn-lam-moi-token" class="btn btn-outline-info btn-sm" style="display:none" onclick="lam_moi_token_thu_cong()" title="Làm mới kết nối">
+                        <i class="fas fa-redo me-1"></i>Làm mới kết nối
+                    </button>
+                    <button id="btn-lam-moi-su-kien" class="btn btn-warning btn-sm" style="display:none" onclick="tai_thong_tin_google_calendar(true)">
+                        <i class="fas fa-sync-alt me-1"></i>Làm mới
+                    </button>
+                    <button id="btn-tao-su-kien-google" class="btn btn-primary btn-sm" style="display:none" data-bs-toggle="modal" data-bs-target="#modal-tao-su-kien-google">
+                        <i class="fas fa-plus me-1"></i>Tạo sự kiện
+                    </button>
+                    <!-- Nút tạo nhiều lịch hàng loạt -->
+                    <button id="btn-tao-lich-hang-loat" class="btn btn-primary btn-sm"data-bs-toggle="modal" data-bs-target="#modal-tao-lich-hang-loat">
+                        <i class="fas fa-layer-group me-1"></i>Tạo Nhiều Lịch
+                    </button>
+                </div>
+            </div>
+
+            <!-- Trạng thái kết nối -->
+            <div class="card mb-3">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div id="loading-google" class="spinner-border text-warning" role="status" style="width:1.5rem;height:1.5rem"></div>
+                    <div id="text-trang-thai-google" class="flex-grow-1 text-muted">Đang kiểm tra kết nối...</div>
+                </div>
+            </div>
+
+            <!-- Danh sách sự kiện Google -->
+            <div class="card" id="card-lich-dong-bo" style="display:none;">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <span><i class="fab fa-google me-2 text-danger"></i>Sự kiện Google Calendar</span>
+                        </div>
+                        <div class="col-md-3">
+                            <!-- Navigation chuyển tháng -->
+                            <div class="d-flex align-items-center justify-content-center">
+                                <button class="btn btn-outline-primary btn-sm me-2" onclick="chuyen_thang(-1)" title="Tháng trước">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="fw-bold text-primary" id="hien-thi-thang-nam" style="min-width: 120px; text-align: center;">
+                                    Loading...
+                                </span>
+                                <button class="btn btn-outline-primary btn-sm ms-2" onclick="chuyen_thang(1)" title="Tháng sau">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <!-- Bộ lọc compact -->
+                            <div class="d-flex gap-2 align-items-center">
+                                <select class="form-select form-select-sm" id="loc-thoi-gian-gc" onchange="ap_dung_loc_google()">
+                                    <option value="thang-nay">Tháng này</option>
+                                    <option value="tuan-nay">Tuần này</option>
+                                    <option value="hom-nay">Hôm nay</option>
+                                    <option value="7-ngay">7 ngày tới</option>
+                                    <option value="30-ngay">30 ngày tới</option>
+                                    <option value="tat-ca">Tất cả</option>
+                                </select>
+                                <select class="form-select form-select-sm" id="loc-loai-su-kien-gc" onchange="ap_dung_loc_google()">
+                                    <option value="tat-ca">Tất cả sự kiện</option>
+                                    <option value="ca-ngay">Cả ngày</option>
+                                    <option value="co-gio">Có giờ cụ thể</option>
+                                </select>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="xoa_loc_google()" title="Xóa bộ lọc">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <small class="text-muted align-self-center" id="gc-thong-tin-pham-vi"></small>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-secondary" id="btn-xem-danh-sach" onclick="chuyen_che_do_xem('list')">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary active" id="btn-xem-lich" onclick="chuyen_che_do_xem('calendar')">
+                                        <i class="fas fa-calendar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- View lịch -->
+                    <div id="lich-view" class="p-3">
+                        <div id="lich-calendar-container">
+                            <!-- Calendar sẽ được tạo ở đây -->
+                        </div>
+                    </div>
+                    <!-- View danh sách -->
+                    <div id="danh-sach-lich-dong-bo" class="list-group list-group-flush" style="display:none;">
+                        <div class="p-4 text-center text-muted">Chưa tải sự kiện</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Thống kê -->
+        <div class="tab-pane fade" id="thong-ke" role="tabpanel">
+            <!-- Tổng hợp lương dự tính từ lịch làm việc -->
+            <div id="tong-hop-luong-lich-container" style="display: block;">
+                <!-- Header với responsive flex -->
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <h5 class="mb-0"><i class="fas fa-coins me-2"></i>Lịch Làm Việc & Lương Dự Tính</h5>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <!-- Bộ lọc responsive -->
+                        <div class="row g-2">
+                            <div class="col-12 col-sm-3">
+                                <select class="form-select form-select-sm" id="loc-cong-viec" onchange="ap_dung_bo_loc_lich()">
+                                    <option value="">Tất cả công việc</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <input type="date" class="form-control form-control-sm" id="loc-tu-ngay" onchange="ap_dung_bo_loc_lich()" placeholder="Từ ngày">
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <input type="date" class="form-control form-control-sm" id="loc-den-ngay" onchange="ap_dung_bo_loc_lich()" placeholder="Đến ngày">
+                            </div>
+                            <div class="col-12 col-sm-3">
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="btn btn-outline-primary btn-sm flex-fill" onclick="ap_dung_bo_loc_lich()" title="Áp dụng bộ lọc">
+                                        <i class="fas fa-search"></i>
+                                        <span class="d-none d-sm-inline ms-1">Lọc</span>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="reset_bo_loc_lich()" title="Reset bộ lọc">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card tổng hợp -->
+                <div class="card mb-4 border-success">
+                    <div class="card-body bg-light">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-calendar-check text-primary fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-muted">Tổng Lịch</h6>
+                                        <h4 class="mb-0 text-primary" id="tong-lich-summary">0</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-clock text-warning fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-muted">Tổng Giờ</h6>
+                                        <h4 class="mb-0 text-warning" id="tong-gio-summary">0h</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-money-bill-wave text-success fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-muted">Tổng Lương</h6>
+                                        <h4 class="mb-0 text-success" id="tong-luong-summary">0 VNĐ</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-calculator text-info fa-2x me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-muted">Lương TB/Ca</h6>
+                                        <h4 class="mb-0 text-info" id="luong-tb-summary">0 VNĐ</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danh sách lịch làm việc -->
+                <div id="danh-sach-lich-lam">
+                    <!-- Sẽ được load bằng JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm công việc -->
+<div class="modal fade" id="modal-them-cong-viec" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-briefcase me-2"></i>Thêm Công Việc
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-them-cong-viec">
+                    <div class="mb-3">
+                        <label class="form-label">Tên công việc <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ten-cong-viec" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lương/giờ <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="luong-gio" min="0" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa điểm mặc định</label>
+                        <input type="text" class="form-control" id="dia-diem-mac-dinh" placeholder="VD: Văn phòng, Remote, Tại nhà...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả công việc</label>
+                        <textarea class="form-control" id="mo-ta-cong-viec" rows="3" placeholder="Mô tả chi tiết về công việc..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Màu sắc</label>
+                        <input type="color" class="form-control form-control-color" id="mau-sac" value="#ffc107" onchange="hien_thi_mau_google_calendar(this.value, 'google-color-preview')">
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fab fa-google me-1"></i>
+                                Google Calendar sẽ dùng màu: 
+                                <span id="google-color-preview" class="badge" style="background-color: #fbd75b;">Banana</span>
+                            </small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-warning" onclick="them_cong_viec()">
+                    <i class="fas fa-save me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal sửa công việc -->
+<div class="modal fade" id="modal-sua-cong-viec" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Sửa Công Việc
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-sua-cong-viec">
+                    <input type="hidden" id="sua-cong-viec-id">
+                    <div class="mb-3">
+                        <label class="form-label">Tên công việc <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="sua-ten-cong-viec" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lương/giờ <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="sua-luong-gio" min="0" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa điểm mặc định</label>
+                        <input type="text" class="form-control" id="sua-dia-diem-mac-dinh">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả công việc</label>
+                        <textarea class="form-control" id="sua-mo-ta-cong-viec" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Màu sắc</label>
+                        <input type="color" class="form-control form-control-color" id="sua-mau-sac">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="cap_nhat_cong_viec()">
+                    <i class="fas fa-save me-1"></i>Cập nhật
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm lịch làm việc -->
+<div class="modal fade" id="modal-them-lich-lam" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-plus me-2"></i>Thêm Lịch Làm Việc
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-them-lich-lam">
+                    <div class="mb-3">
+                        <label class="form-label">Công việc <span class="text-danger">*</span></label>
+                        <select class="form-control" id="them-cong-viec-lich" required>
+                            <option value="">Chọn công việc</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày làm <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="them-ngay-lam" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Giờ bắt đầu <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="them-gio-bat-dau" value="00:00" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Giờ kết thúc <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="them-gio-ket-thuc" value="00:00" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa điểm</label>
+                        <input type="text" class="form-control" id="them-dia-diem-lich" placeholder="Để trống sẽ sử dụng địa điểm mặc định">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-control" id="them-ghi-chu-lich" rows="2" placeholder="Ghi chú về ca làm việc..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="them-dong-bo-google">
+                            <label class="form-check-label" for="them-dong-bo-google">
+                                <i class="fab fa-google me-1"></i>Đồng bộ với Google Calendar
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-warning" 
+                    onclick="them_lich_lam_viec()">
+                    <i class="fas fa-save me-1"></i>Thêm Lịch
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal sửa lịch làm việc -->
+<div class="modal fade" id="modal-sua-lich-lam" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Sửa Lịch Làm Việc
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-sua-lich-lam">
+                    <input type="hidden" id="sua-lich-lam-id">
+                    <div class="mb-3">
+                        <label class="form-label">Công việc <span class="text-danger">*</span></label>
+                        <select class="form-control" id="sua-cong-viec-lich" required>
+                            <option value="">Chọn công việc</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày làm <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="sua-ngay-lam" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Giờ bắt đầu <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="sua-gio-bat-dau" value="00:00" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Giờ kết thúc <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="sua-gio-ket-thuc" value="00:00" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa điểm</label>
+                        <input type="text" class="form-control" id="sua-dia-diem-lich">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-control" id="sua-ghi-chu-lich" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sua-dong-bo-google">
+                            <label class="form-check-label" for="sua-dong-bo-google">
+                                <i class="fab fa-google me-1"></i>Đồng bộ với Google Calendar
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="cap_nhat_lich_lam_viec()">
+                    <i class="fas fa-save me-1"></i>Cập nhật
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo sự kiện Google -->
+<div class="modal fade" id="modal-tao-su-kien-google" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Tạo Sự Kiện Google</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-tao-su-kien-google">
+          <div class="mb-3">
+            <label class="form-label">Tên sự kiện <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="gc-ten-su-kien" required>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Ngày <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="gc-ngay" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Bắt đầu <span class="text-danger">*</span></label>
+              <input type="time" class="form-control" id="gc-gio-bat-dau" value="00:00" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Kết thúc <span class="text-danger">*</span></label>
+              <input type="time" class="form-control" id="gc-gio-ket-thuc" value="00:00" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Địa điểm</label>
+            <input type="text" class="form-control" id="gc-dia_diem">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Ghi chú</label>
+            <textarea class="form-control" id="gc-ghi-chu" rows="2"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Màu</label>
+            <input type="color" class="form-control form-control-color" id="gc-mau-sac" value="#007bff">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary" onclick="tao_su_kien_google()"><i class="fas fa-save me-1"></i>Tạo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal sửa sự kiện Google -->
+<div class="modal fade" id="modal-sua-su-kien-google" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Sửa Sự Kiện Google</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-sua-su-kien-google">
+          <input type="hidden" id="gc-event-id">
+          <div class="mb-3">
+            <label class="form-label">Tên sự kiện <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="gc-sua-ten-su-kien" required>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Ngày <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="gc-sua-ngay" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Bắt đầu <span class="text-danger">*</span></label>
+              <input type="time" class="form-control" id="gc-sua-gio-bat-dau" value="00:00" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Kết thúc <span class="text-danger">*</span></label>
+              <input type="time" class="form-control" id="gc-sua-gio-ket-thuc" value="00:00" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Địa điểm</label>
+            <input type="text" class="form-control" id="gc-sua-dia-diem">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Ghi chú</label>
+            <textarea class="form-control" id="gc-sua-ghi-chu" rows="2"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Màu</label>
+            <input type="color" class="form-control form-control-color" id="gc-sua-mau-sac" value="#007bff">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary" onclick="cap_nhat_su_kien_google()"><i class="fas fa-save me-1"></i>Lưu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal tạo nhiều sự kiện Google hàng loạt -->
+<div class="modal fade" id="modal-tao-lich-hang-loat" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-layer-group me-2"></i>Tạo Sự Kiện Google Calendar Hàng Loạt</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-tao-lich-hang-loat" autocomplete="off">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label">Công việc (để tính lương) <span class="text-muted">*</span></label>
+              <select id="hl-cong-viec-id" class="form-select">
+                <option value="">Chọn công việc (tùy chọn)</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Địa điểm mặc định</label>
+              <input type="text" id="hl-dia-diem" class="form-control" placeholder="Tùy chọn">
+            </div>
+            <div class="col-md-5">
+              <label class="form-label">Mô tả chung</label>
+              <input type="text" id="hl-ghi-chu" class="form-control" placeholder="Áp dụng cho tất cả nếu không ghi riêng">
+            </div>
+          </div>
+          <hr>
+          <!-- Khu vực nhập các sự kiện -->
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Danh Sách Sự Kiện</h6>
+            <div class="btn-group btn-group-sm">
+              <button type="button" class="btn btn-outline-secondary" onclick="them_ca_lam_hang_loat()"><i class="fas fa-plus me-1"></i>Thêm Sự Kiện</button>
+              <button type="button" class="btn btn-outline-secondary" onclick="chon_nhanh_ngay_tuan()"><i class="fas fa-calendar-week me-1"></i>Thêm 7 ngày tới</button>
+            </div>
+          </div>
+          <div class="table-container border rounded" style="max-height:45vh;overflow:auto;">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="min-width:115px">Ngày</th>
+                  <th style="min-width:95px">Bắt đầu</th>
+                  <th style="min-width:95px">Kết thúc</th>
+                  <th style="min-width:170px">Địa điểm</th>
+                  <th style="min-width:200px">Mô tả</th>
+                  <th style="width:40px"></th>
+                </tr>
+              </thead>
+              <tbody id="ds-ca-lam-hang-loat">
+                <!-- Hàng được thêm động -->
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-2 small text-muted">Mẹo: Có thể copy + dán thời gian giữa các ô để thao tác nhanh.</div>
+        </form>
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <div class="text-muted small" id="hl-thong-ke-row">0 sự kiện</div>
+        <div>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button type="button" class="btn btn-success" onclick="tao_lich_hang_loat()"><i class="fab fa-google me-1"></i>Tạo Trên Google Calendar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<!-- Load Google APIs -->
+<script src="https://accounts.google.com/gsi/client"></script>
+<script src="{{ url_for('static', filename='js/google_calendar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tien_te.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Biến toàn cục
+    let danh_sach_cong_viec_global = [];
+    let danh_sach_lich_lam_global = [];
+    let chart_thu_nhap = null;
+    let chart_gio_lam = null;
+    let danh_sach_su_kien_google = [];
+    let dem_hang_hl = 0; // đếm để tạo id duy nhất cho modal hàng loạt
+
+    // Hàm helper để format ngày theo local time (tránh vấn đề timezone)
+    function dinh_dang_ngay_local(date) {
+        return date.getFullYear() + '-' + 
+               String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+               String(date.getDate()).padStart(2, '0');
+    }
+
+    /**
+     * Tự động kích hoạt tab đầu tiên
+     */
+    function auto_activate_first_tab() {
+        const first_tab = document.querySelector('#cong-viec-tabs .nav-link:first-child');
+        const first_tab_pane = document.querySelector('#cong-viec-content .tab-pane:first-child');
+        
+        if (first_tab && first_tab_pane) {
+            // Đảm bảo tab đầu tiên active
+            document.querySelectorAll('#cong-viec-tabs .nav-link').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('#cong-viec-content .tab-pane').forEach(pane => {
+                pane.classList.remove('active', 'show');
+            });
+            
+            // Kích hoạt tab đầu tiên
+            first_tab.classList.add('active');
+            first_tab_pane.classList.add('active', 'show');
+            
+            console.log('✅ Đã kích hoạt tab đầu tiên trong trang công việc');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tự động kích hoạt tab đầu tiên
+        auto_activate_first_tab();
+        // Khởi tạo biến calendar
+        const hom_nay = new Date();
+        window.calendar_current_month = hom_nay.getMonth();
+        window.calendar_current_year = hom_nay.getFullYear();
+        
+        // Khởi tạo Google Calendar
+        khoi_tao_google_calendar().catch(console.error);
+        
+        // Tải dữ liệu ban đầu
+        tai_danh_sach_cong_viec();
+        
+        // Lắng nghe sự kiện khi tab được kích hoạt
+        const tab_quan_ly = document.querySelector('[data-bs-target="#quan-ly-cong-viec"]');
+        if (tab_quan_ly) {
+            tab_quan_ly.addEventListener('shown.bs.tab', function() {
+                console.log('🎯 Tab Công Việc được kích hoạt');
+                
+                // Đảm bảo container hiển thị
+                const danhSachCongViec = document.getElementById('danh-sach-cong-viec');
+                if (danhSachCongViec) {
+                    danhSachCongViec.style.display = 'block';
+                }
+                
+                // Tải lại dữ liệu
+                tai_danh_sach_cong_viec();
+            });
+        }
+        
+        const tab_google = document.querySelector('[data-bs-target="#google-calendar"]');
+        if (tab_google) {
+            tab_google.addEventListener('shown.bs.tab', function() {
+                tai_thong_tin_google_calendar();
+                // Khởi tạo bộ lọc mặc định
+                setTimeout(() => {
+                    const locThoiGian = document.getElementById('loc-thoi-gian-gc');
+                    const locLoaiSK = document.getElementById('loc-loai-su-kien-gc');
+                    if (locThoiGian && !locThoiGian.value) locThoiGian.value = 'thang-nay';
+                    if (locLoaiSK && !locLoaiSK.value) locLoaiSK.value = 'tat-ca';
+                    // Cập nhật hiển thị tháng/năm
+                    cap_nhat_hien_thi_thang_nam();
+                }, 100);
+            });
+        }
+
+        const tab_thong_ke = document.querySelector('[data-bs-target="#thong-ke"]');
+        if (tab_thong_ke) {
+            tab_thong_ke.addEventListener('shown.bs.tab', function() {
+                console.log('🎯 Tab Thống Kê được kích hoạt');
+                
+                // Đảm bảo tab content khác bị ẩn
+                document.getElementById('quan-ly-cong-viec').classList.remove('show', 'active');
+                document.getElementById('google-calendar').classList.remove('show', 'active');
+                
+                // Kích hoạt tab thống kê
+                const thongKeTab = document.getElementById('thong-ke');
+                thongKeTab.classList.add('show', 'active');
+                
+                // Khởi tạo bộ lọc và tải dữ liệu
+                setTimeout(() => {
+                    khoi_tao_cac_bo_loc_element();
+                    khoi_tao_bo_loc_lich();
+                    tai_danh_sach_lich_lam();
+                }, 100);
+            });
+        }
+
+        // Thêm event listener cho tất cả các tab để đảm bảo chuyển đổi đúng
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tabButton => {
+            tabButton.addEventListener('shown.bs.tab', function(e) {
+                const targetId = e.target.getAttribute('data-bs-target').substring(1);
+                console.log(`🔄 Chuyển sang tab: ${targetId}`);
+                
+                // Force clear tất cả tab content trước
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                    pane.style.display = 'none';
+                });
+                
+                // Hiển thị tab được chọn
+                const activePane = document.getElementById(targetId);
+                if (activePane) {
+                    activePane.style.display = 'block';
+                    activePane.classList.add('show', 'active');
+                }
+                
+                // Xử lý riêng cho từng tab
+                if (targetId === 'thong-ke') {
+                    // Đảm bảo tab thống kê sạch sẽ - ẩn nội dung các tab khác
+                    const danhSachCongViec = document.getElementById('danh-sach-cong-viec');
+                    if (danhSachCongViec) {
+                        danhSachCongViec.style.display = 'none';
+                    }
+                } else if (targetId === 'quan-ly-cong-viec') {
+                    // Đảm bảo tab công việc hiển thị đúng nội dung
+                    const danhSachCongViec = document.getElementById('danh-sach-cong-viec');
+                    if (danhSachCongViec) {
+                        danhSachCongViec.style.display = 'block';
+                    }
+                    // Tải lại dữ liệu công việc nếu chưa có
+                    if (danh_sach_cong_viec_global.length === 0) {
+                        tai_danh_sach_cong_viec();
+                    }
+                }
+            });
+        });
+
+        // Đặt ngày mặc định cho form thêm lịch
+        const themNgayLam = document.getElementById('them-ngay-lam');
+        if (themNgayLam) {
+            themNgayLam.value = dinh_dang_ngay_local(new Date());
+        }
+    });
+
+    // ================================
+    // QUẢN LÝ CÔNG VIỆC
+    // ================================
+    async function tai_danh_sach_cong_viec() {
+        try {
+            const response = await fetch('/api/cong-viec');
+            const data = await response.json();
+            
+            if (data.thanh_cong) {
+                danh_sach_cong_viec_global = data.du_lieu;
+                hien_thi_danh_sach_cong_viec(data.du_lieu);
+                cap_nhat_select_cong_viec(data.du_lieu);
+            } else {
+                throw new Error(data.loi);
+            }
+        } catch (error) {
+            console.error('Lỗi tải công việc:', error);
+            document.getElementById('danh-sach-cong-viec').innerHTML = `
+                <div class="col-12 text-center py-5 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Lỗi tải dữ liệu: ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    function hien_thi_danh_sach_cong_viec(danh_sach) {
+        const container = document.getElementById('danh-sach-cong-viec');
+        
+        // Đảm bảo container luôn hiển thị khi có dữ liệu
+        if (container) {
+            container.style.display = 'block';
+        }
+        
+        if (danh_sach.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Chưa có công việc nào</p>
+                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modal-them-cong-viec">
+                        <i class="fas fa-plus me-1"></i>Thêm công việc đầu tiên
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = danh_sach.map(cv => `
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card border-start border-4" style="border-left-color: ${cv.mau_sac || '#ffc107'} !important;">
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold">${cv.ten_cong_viec}</h6>
+                        <p class="card-text">
+                            <strong class="text-success">
+                                <i class="fas fa-coins me-1"></i>
+                                ${dinh_dang_tien(cv.luong_gio)}/giờ
+                            </strong><br>
+                            ${cv.dia_diem_mac_dinh ? `<i class="fas fa-map-marker-alt text-muted me-1"></i>${cv.dia_diem_mac_dinh}<br>` : ''}
+                            ${cv.mo_ta ? `<small class="text-muted">${cv.mo_ta}</small>` : ''}
+                        </p>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="sua_cong_viec_by_id(${cv.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="tao_lich_cho_cong_viec(${cv.id})">
+                                <i class="fas fa-calendar-plus"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="xoa_cong_viec(${cv.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Sau khi hiển thị danh sách công việc, tải danh sách lịch làm việc
+        tai_danh_sach_lich_lam();
+    }
+
+    function cap_nhat_select_cong_viec(danh_sach) {
+        const selects = [
+            'them-cong-viec-lich',
+            'sua-cong-viec-lich', 
+            'loc-cong-viec',
+            'hl-cong-viec-id'
+        ];
+        
+        const options = danh_sach.map(cv => `<option value="${cv.id}">${cv.ten_cong_viec}</option>`).join('');
+        
+        selects.forEach(id => {
+            const select = document.getElementById(id);
+            if (select) {
+                if (id === 'loc-cong-viec') {
+                    select.innerHTML = '<option value="">Tất cả</option>' + options;
+                } else if (id === 'hl-cong-viec-id') {
+                    select.innerHTML = '<option value="">Chọn công việc (tùy chọn)</option>' + options;
+                } else {
+                    select.innerHTML = '<option value="">Chọn công việc</option>' + options;
+                }
+                } else {
+                }
+        });
+    }
+
+    async function them_cong_viec() {
+        const form = document.getElementById('form-them-cong-viec');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const du_lieu = {
+            ten_cong_viec: document.getElementById('ten-cong-viec').value.trim(),
+            luong_gio: parseFloat(document.getElementById('luong-gio').value),
+            dia_diem_mac_dinh: document.getElementById('dia-diem-mac-dinh').value.trim() || null,
+            mo_ta: document.getElementById('mo-ta-cong-viec').value.trim() || null,
+            mau_sac: document.getElementById('mau-sac').value
+        };
+        
+        try {
+            const response = await fetch('/api/cong-viec', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(du_lieu)
+            });
+            
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                hien_thi_thong_bao(result.thong_bao, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modal-them-cong-viec')).hide();
+                form.reset();
+                
+                // Đặt lại màu mặc định
+                document.getElementById('mau-sac').value = '#ffc107';
+                
+                // Cập nhật danh sách công việc (bao gồm cả dropdown)
+                await tai_danh_sach_cong_viec();
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    async function sua_cong_viec_by_id(id) {
+        try {
+            const cong_viec = danh_sach_cong_viec_global.find(cv => cv.id === id);
+            if (cong_viec) {
+                document.getElementById('sua-cong-viec-id').value = cong_viec.id;
+                document.getElementById('sua-ten-cong-viec').value = cong_viec.ten_cong_viec;
+                document.getElementById('sua-luong-gio').value = cong_viec.luong_gio;
+                document.getElementById('sua-dia-diem-mac-dinh').value = cong_viec.dia_diem_mac_dinh || '';
+                document.getElementById('sua-mo-ta-cong-viec').value = cong_viec.mo_ta || '';
+                document.getElementById('sua-mau-sac').value = cong_viec.mau_sac || '#ffc107';
+                
+                new bootstrap.Modal(document.getElementById('modal-sua-cong-viec')).show();
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi khi tải dữ liệu: ${error.message}`, 'error');
+        }
+    }
+
+    async function cap_nhat_cong_viec() {
+        const form = document.getElementById('form-sua-cong-viec');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const id = document.getElementById('sua-cong-viec-id').value;
+        const du_lieu = {
+            ten_cong_viec: document.getElementById('sua-ten-cong-viec').value.trim(),
+            luong_gio: parseFloat(document.getElementById('sua-luong-gio').value),
+            dia_diem_mac_dinh: document.getElementById('sua-dia-diem-mac-dinh').value.trim() || null,
+            mo_ta: document.getElementById('sua-mo-ta-cong-viec').value.trim() || null,
+            mau_sac: document.getElementById('sua-mau-sac').value
+        };
+        
+        try {
+            const response = await fetch(`/api/cong-viec/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(du_lieu)
+            });
+            
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                hien_thi_thong_bao(result.thong_bao, 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modal-sua-cong-viec')).hide();
+                
+                // Cập nhật danh sách công việc (bao gồm cả dropdown)
+                await tai_danh_sach_cong_viec();
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    async function xoa_cong_viec(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa công việc này? Điều này cũng sẽ xóa tất cả lịch làm việc liên quan.')) return;
+        
+        try {
+            const response = await fetch(`/api/cong-viec/${id}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (result.thanh_cong) {
+                hien_thi_thong_bao(result.thong_bao, 'success');
+                await tai_danh_sach_cong_viec();
+                await tai_danh_sach_lich_lam(); // Reload lịch làm việc
+            } else {
+                throw new Error(result.loi);
+            }
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        }
+    }
+
+    function tao_lich_cho_cong_viec(id) {
+        document.getElementById('them-cong-viec-lich').value = id;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modal-them-lich-lam')).show();
+    }
+
+    // Event listener cho modal thêm lịch làm việc
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalThemLich = document.getElementById('modal-them-lich-lam');
+        if (modalThemLich) {
+            modalThemLich.addEventListener('shown.bs.modal', function() {
+                // Đảm bảo dropdown có dữ liệu
+                if (danh_sach_cong_viec_global && danh_sach_cong_viec_global.length > 0) {
+                    cap_nhat_select_cong_viec(danh_sach_cong_viec_global);
+                } else {
+                    tai_danh_sach_cong_viec();
+                }
+            });
+        }
+    });
+
+    async function tai_danh_sach_lich_lam() {
+        try {
+            const response = await fetch('/api/lich-lam');
+            const data = await response.json();
+            
+            if (data.thanh_cong) {
+                danh_sach_lich_lam_global = data.du_lieu;
+                hien_thi_danh_sach_lich_lam(data.du_lieu);
+                cap_nhat_thong_ke_lich_lam(data.du_lieu);
+            } else {
+                throw new Error(data.loi);
+            }
+        } catch (error) {
+            console.error('Lỗi tải lịch làm việc:', error);
+            document.getElementById('danh-sach-lich-lam').innerHTML = `
+                <div class="col-12 text-center py-5 text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Lỗi tải dữ liệu: ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    // ================================
+    // THÊM LỊCH LÀM VIỆC
+    // ================================
+    async function them_lich_lam_viec() {
+        console.log('🎯 FUNCTION them_lich_lam_viec() được gọi!');
+        try {
+            const form = document.getElementById('form-them-lich-lam');
+            const cong_viec_id = document.getElementById('them-cong-viec-lich').value;
+            const ngay_lam = document.getElementById('them-ngay-lam').value;
+            const gio_bat_dau = document.getElementById('them-gio-bat-dau').value;
+            const gio_ket_thuc = document.getElementById('them-gio-ket-thuc').value;
+            const dia_diem = document.getElementById('them-dia-diem-lich').value;
+            const ghi_chu = document.getElementById('them-ghi-chu-lich').value;
+            const dong_bo_google = document.getElementById('them-dong-bo-google').checked;
+
+            // Validate dữ liệu
+            if (!cong_viec_id) {
+                console.error('❌ Chưa chọn công việc');
+                hien_thi_thong_bao('Vui lòng chọn công việc!', 'error');
+                return;
+            }
+            if (!ngay_lam) {
+                console.error('❌ Chưa chọn ngày làm');
+                hien_thi_thong_bao('Vui lòng chọn ngày làm!', 'error');
+                return;
+            }
+            if (!gio_bat_dau || !gio_ket_thuc) {
+                console.error('❌ Chưa nhập giờ');
+                hien_thi_thong_bao('Vui lòng nhập giờ bắt đầu và kết thúc!', 'error');
+                return;
+            }
+            if (gio_bat_dau >= gio_ket_thuc) {
+                console.error('❌ Giờ không hợp lệ');
+                hien_thi_thong_bao('Giờ bắt đầu phải nhỏ hơn giờ kết thúc!', 'error');
+                return;
+            }
+
+            const du_lieu = {
+                cong_viec_id: parseInt(cong_viec_id),
+                ngay_lam: ngay_lam,
+                gio_bat_dau: gio_bat_dau,
+                gio_ket_thuc: gio_ket_thuc,
+                dia_diem: dia_diem,
+                ghi_chu: ghi_chu,
+                dong_bo_google: dong_bo_google
+            };
+
+            const response = await fetch('/api/lich-lam', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(du_lieu)
+            });
+
+            const result = await response.json();
+            if (result.thanh_cong) {
+                hien_thi_thong_bao(result.thong_bao || 'Đã thêm lịch làm việc!', 'success');
+                
+                // Nếu có đồng bộ Google Calendar, thực hiện đồng bộ
+                if (dong_bo_google && result.du_lieu) {
+                    try {
+                        // Lấy thông tin công việc để có màu sắc
+                        const lich_moi = result.du_lieu;
+                        if (lich_moi.cong_viec && window.googleCalendarManager?.kiem_tra_ket_noi()) {
+                            const thong_tin_lich = {
+                                ten_cong_viec: lich_moi.cong_viec.ten_cong_viec,
+                                ngay_lam: lich_moi.ngay_lam,
+                                gio_bat_dau: lich_moi.gio_bat_dau,
+                                gio_ket_thuc: lich_moi.gio_ket_thuc,
+                                dia_diem: lich_moi.dia_diem || lich_moi.cong_viec.dia_diem_mac_dinh || '',
+                                ghi_chu: lich_moi.ghi_chu || `Lương: ${dinh_dang_tien(lich_moi.cong_viec.luong_gio)}/giờ`,
+                                mau_sac: lich_moi.cong_viec.mau_sac  // Lấy màu từ công việc
+                            };
+                            
+                            const google_result = await window.googleCalendarManager.tao_event(thong_tin_lich);
+                            
+                            if (google_result.thanh_cong) {
+                                // Cập nhật Google event ID vào database
+                                await fetch(`/api/lich-lam/${lich_moi.id}`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        ...lich_moi,
+                                        dong_bo_google: true,
+                                        google_event_id: google_result.google_event_id,
+                                        google_event_link: google_result.google_event_link
+                                    })
+                                });
+                                
+                                hien_thi_thong_bao('Đã đồng bộ lên Google Calendar!', 'success');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('❌ Lỗi đồng bộ Google Calendar:', error);
+                        hien_thi_thong_bao('Tạo lịch thành công nhưng lỗi đồng bộ Google Calendar', 'warning');
+                    }
+                }
+                
+                // Đóng modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modal-them-lich-lam'));
+                if (modal) modal.hide();
+                
+                // Reset form
+                form.reset();
+                
+                // Tải lại danh sách lịch làm việc
+                tai_danh_sach_lich_lam();
+                
+            } else {
+                throw new Error(result.loi);
+            }
+
+        } catch (error) {
+            console.error('❌ Lỗi thêm lịch làm việc:', error);
+            hien_thi_thong_bao('Lỗi thêm lịch: ' + error.message, 'error');
+        }
+    }
+
+    function hien_thi_danh_sach_lich_lam(danh_sach) {
+        const container = document.getElementById('danh-sach-lich-lam');
+        const summaryContainer = document.getElementById('tong-hop-luong-lich-container');
+        
+        if (!container) return;
+        if (!Array.isArray(danh_sach)) return;
+
+        // LUÔN hiển thị container tổng hợp để bộ lọc không bị ẩn
+        if (summaryContainer) summaryContainer.style.display = 'block';
+
+        if (danh_sach.length === 0) {
+            // Cập nhật thống kê về 0 nhưng KHÔNG ẩn container
+            document.getElementById('tong-lich-summary').textContent = '0';
+            document.getElementById('tong-gio-summary').textContent = '0h';
+            document.getElementById('tong-luong-summary').textContent = dinh_dang_tien(0);
+            document.getElementById('luong-tb-summary').textContent = dinh_dang_tien(0);
+            
+            // Hiển thị thông báo không có dữ liệu nhưng GIỮ BỘ LỌC
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
+                    <p class="text-muted mb-2">Không có lịch làm việc phù hợp với bộ lọc</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="reset_bo_loc_lich()">
+                            <i class="fas fa-times me-1"></i>Reset bộ lọc
+                        </button>
+                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modal-them-lich-lam">
+                            <i class="fas fa-plus me-1"></i>Thêm lịch mới
+                        </button>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        // Tính toán thống kê tổng hợp
+        let tong_lich = danh_sach.length;
+        let tong_gio = 0;
+        let tong_luong = 0;
+
+        danh_sach.forEach(lich => {
+            if (lich.gio_bat_dau && lich.gio_ket_thuc) {
+                const [h1, m1] = lich.gio_bat_dau.split(':').map(Number);
+                const [h2, m2] = lich.gio_ket_thuc.split(':').map(Number);
+                const phut_bd = h1 * 60 + m1;
+                const phut_kt = h2 * 60 + m2;
+                const phut_lam = phut_kt > phut_bd ? phut_kt - phut_bd : (24 * 60 - phut_bd) + phut_kt;
+                const gio_lam = phut_lam / 60;
+                tong_gio += gio_lam;
+                
+                // Tìm công việc để lấy lương/giờ
+                const cong_viec = danh_sach_cong_viec_global.find(cv => cv.id === lich.cong_viec_id);
+                if (cong_viec) {
+                    tong_luong += gio_lam * cong_viec.luong_gio;
+                }
+            }
+        });
+
+        // Cập nhật số liệu tổng hợp
+        document.getElementById('tong-lich-summary').textContent = tong_lich;
+        document.getElementById('tong-gio-summary').textContent = `${tong_gio.toFixed(1)}h`;
+        document.getElementById('tong-luong-summary').textContent = dinh_dang_tien(tong_luong);
+        document.getElementById('luong-tb-summary').textContent = tong_lich > 0 ? dinh_dang_tien(tong_luong / tong_lich) : dinh_dang_tien_te(0);
+
+        // Nhóm lịch theo công việc
+        const nhom = {};
+        danh_sach.forEach(lich => {
+            const id = lich.cong_viec_id || 'khac';
+            if (!nhom[id]) nhom[id] = [];
+            nhom[id].push(lich);
+        });
+
+        // Tạo HTML nhóm
+        const html_nhom = Object.keys(nhom).map(id => {
+            const ds = nhom[id];
+            // Lấy thông tin công việc
+            const cong_viec = danh_sach_cong_viec_global.find(cv => cv.id === parseInt(id)) || ds[0].cong_viec || { ten_cong_viec: 'Khác', mau_sac: '#6c757d', luong_gio: 0 };
+            // Tính tổng giờ & thu nhập nhóm
+            let tong_gio = 0; let tong_thu_nhap = 0;
+            ds.forEach(l => { const g = tinh_gio_lam(l.gio_bat_dau, l.gio_ket_thuc); tong_gio += g; tong_thu_nhap += g * (cong_viec.luong_gio || 0); });
+
+            const mau = cong_viec.mau_sac || '#ffc107';
+
+            const ds_items_html = ds.map(lich => {
+                const ngay_lam = new Date(lich.ngay_lam);
+                const gio_lam = tinh_gio_lam(lich.gio_bat_dau, lich.gio_ket_thuc);
+                const thu_nhap = gio_lam * (cong_viec.luong_gio || 0);
+                return `
+                <div class="col-md-6 col-xl-4 mb-2" data-cong-viec="${lich.cong_viec_id}" data-ngay="${lich.ngay_lam}">
+                  <div class="card h-100 border-start border-4" style="border-left-color:${mau}!important" title="${cong_viec.ten_cong_viec}">
+                    <div class="card-body py-3">
+                      <div class="d-flex justify-content-between align-items-start mb-1">
+                        <span class="fw-semibold small"><i class="fas fa-calendar-day text-primary me-1"></i>${dinh_dang_ngay(ngay_lam)} (${lay_ten_thu(ngay_lam.getDay())})</span>
+                        <span class="badge" style="background:${mau};">${gio_lam.toFixed(2)}h</span>
+                      </div>
+                      <div class="small mb-1"><i class="fas fa-clock text-success me-1"></i>${lich.gio_bat_dau} - ${lich.gio_ket_thuc}</div>
+                      ${lich.dia_diem ? `<div class="small mb-1"><i class='fas fa-map-marker-alt text-warning me-1'></i>${lich.dia_diem}</div>`:''}
+                      
+                      <!-- Lương dự tính nổi bật hơn -->
+                      <div class="alert alert-success py-1 px-2 mb-2" style="font-size: 0.85rem;">
+                        <strong><i class="fas fa-money-bill-wave me-1"></i>Lương: ${dinh_dang_tien(thu_nhap)}</strong>
+                        <small class="d-block text-muted">${dinh_dang_tien(cong_viec.luong_gio)}/giờ × ${gio_lam.toFixed(2)}h</small>
+                      </div>
+                      
+                      ${lich.ghi_chu ? `<div class='small text-muted'><em><i class="fas fa-sticky-note me-1"></i>${lich.ghi_chu}</em></div>`:''}
+                    </div>
+                  </div>
+                </div>`;
+            }).join('');
+
+            return `
+            <div class="col-12 mb-4 nhom-lich" data-nhom-cong-viec="${id}">
+              <div class="card shadow-sm">
+                <div class="card-header d-flex flex-wrap justify-content-between align-items-center" style="border-left:6px solid ${mau};">
+                  <div class="d-flex align-items-center gap-2">
+                    <div style="width:14px;height:14px;border-radius:3px;background:${mau}"></div>
+                    <h6 class="mb-0 fw-bold text-truncate" style="max-width:260px">${cong_viec.ten_cong_viec}</h6>
+                  </div>
+                  <div class="small text-muted d-flex flex-wrap gap-3">
+                    <span><i class="fas fa-list me-1"></i>${ds.length} ca</span>
+                    <span><i class="fas fa-clock me-1"></i>${tong_gio.toFixed(2)}h</span>
+                    <span class="fw-bold text-success"><i class="fas fa-coins me-1"></i>Tổng: ${dinh_dang_tien(tong_thu_nhap)}</span>
+                    <span class="text-info"><i class="fas fa-calculator me-1"></i>TB: ${dinh_dang_tien(ds.length > 0 ? tong_thu_nhap / ds.length : 0)}/ca</span>
+                  </div>
+                </div>
+                <div class="card-body pt-3 pb-2">
+                  <div class="row" data-vung-danh-sach-cong-viec="${id}">
+                    ${ds_items_html}
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        }).join('');
+
+        // Gán kết quả
+        container.innerHTML = html_nhom;
+    }
+
+    // Cải thiện bộ lọc với validation và feedback
+    function ap_dung_bo_loc_lich() {
+        try {
+            const cong_viec = document.getElementById('loc-cong-viec').value;
+            const tu_ngay = document.getElementById('loc-tu-ngay').value;
+            const den_ngay = document.getElementById('loc-den-ngay').value;
+            
+            // Validation ngày
+            if (tu_ngay && den_ngay && tu_ngay > den_ngay) {
+                hien_thi_thong_bao('Từ ngày không thể lớn hơn đến ngày!', 'warning');
+                return;
+            }
+            
+            // Kiểm tra nếu chưa có dữ liệu gốc
+            if (!danh_sach_lich_lam_global || danh_sach_lich_lam_global.length === 0) {
+                console.warn('⚠️ Chưa có dữ liệu lịch làm việc để lọc');
+                return;
+            }
+            
+            // Lọc danh sách lịch làm việc từ dữ liệu global
+            let danh_sach_loc = [...danh_sach_lich_lam_global];
+            
+            // Áp dụng bộ lọc theo công việc
+            if (cong_viec) {
+                danh_sach_loc = danh_sach_loc.filter(lich => lich.cong_viec_id == cong_viec);
+            }
+            
+            // Áp dụng bộ lọc theo ngày
+            if (tu_ngay) {
+                danh_sach_loc = danh_sach_loc.filter(lich => lich.ngay_lam >= tu_ngay);
+            }
+            
+            if (den_ngay) {
+                danh_sach_loc = danh_sach_loc.filter(lich => lich.ngay_lam <= den_ngay);
+            }
+            
+            // Hiển thị lại danh sách đã lọc
+            hien_thi_danh_sach_lich_lam(danh_sach_loc);
+            
+            // Cập nhật thông báo kết quả lọc
+            const total = danh_sach_lich_lam_global.length;
+            const filtered = danh_sach_loc.length;
+            
+            if (cong_viec || tu_ngay || den_ngay) {
+                console.log(`🔍 Bộ lọc: Hiển thị ${filtered}/${total} lịch làm việc`);
+                
+                // Hiển thị thông báo về kết quả lọc nếu có điều kiện lọc
+                if (filtered === 0) {
+                    // Không hiển thị toast warning vì đã có thông báo trong UI
+                    console.log('⚠️ Không tìm thấy lịch làm việc nào phù hợp với bộ lọc');
+                } else if (filtered < total) {
+                    hien_thi_thong_bao(`Tìm thấy ${filtered}/${total} lịch làm việc phù hợp`, 'info');
+                }
+            }
+            
+        } catch (e) {
+            console.error('❌ Lỗi áp dụng bộ lọc:', e);
+            hien_thi_thong_bao('Có lỗi khi áp dụng bộ lọc', 'danger');
+        }
+    }
+
+    // Khởi tạo bộ lọc với giá trị mặc định
+    function khoi_tao_bo_loc_lich() {
+        try {
+            // Khởi tạo select công việc
+            const selectCongViec = document.getElementById('loc-cong-viec');
+            if (selectCongViec && danh_sach_cong_viec_global) {
+                selectCongViec.innerHTML = '<option value="">Tất cả công việc</option>';
+                danh_sach_cong_viec_global.forEach(cv => {
+                    const option = document.createElement('option');
+                    option.value = cv.id;
+                    option.textContent = cv.ten_cong_viec;
+                    selectCongViec.appendChild(option);
+                });
+                
+                // Thêm event listener để tự động áp dụng bộ lọc khi thay đổi
+                selectCongViec.addEventListener('change', ap_dung_bo_loc_lich);
+            }
+            
+            // Khởi tạo ngày mặc định (tháng hiện tại)
+            const today = new Date();
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            
+            const tuNgayEl = document.getElementById('loc-tu-ngay');
+            const denNgayEl = document.getElementById('loc-den-ngay');
+            
+            if (tuNgayEl) {
+                tuNgayEl.value = dinh_dang_ngay_local(firstDayOfMonth);
+                tuNgayEl.addEventListener('change', ap_dung_bo_loc_lich);
+            }
+            if (denNgayEl) {
+                denNgayEl.value = dinh_dang_ngay_local(lastDayOfMonth);
+                denNgayEl.addEventListener('change', ap_dung_bo_loc_lich);
+            }
+            
+            console.log('✅ Đã khởi tạo bộ lọc lịch làm việc');
+            
+        } catch (e) {
+            console.error('❌ Lỗi khởi tạo bộ lọc:', e);
+        }
+    }
+
+    // Reset bộ lọc về mặc định
+    function reset_bo_loc_lich() {
+        const selectCongViec = document.getElementById('loc-cong-viec');
+        const tuNgayEl = document.getElementById('loc-tu-ngay');
+        const denNgayEl = document.getElementById('loc-den-ngay');
+        
+        if (selectCongViec) selectCongViec.value = '';
+        if (tuNgayEl) tuNgayEl.value = '';
+        if (denNgayEl) denNgayEl.value = '';
+        
+        // Hiển thị lại toàn bộ danh sách gốc
+        if (danh_sach_lich_lam_global && danh_sach_lich_lam_global.length > 0) {
+            hien_thi_danh_sach_lich_lam(danh_sach_lich_lam_global);
+            hien_thi_thong_bao(`Đã reset bộ lọc, hiển thị ${danh_sach_lich_lam_global.length} lịch làm việc`, 'success');
+        } else {
+            // Nếu không có dữ liệu gốc, tải lại từ server
+            tai_danh_sach_lich_lam();
+            hien_thi_thong_bao('Đã reset bộ lọc', 'info');
+        }
+    }
+
+    // Hàm cập nhật thống kê tổng hợp
+    function cap_nhat_thong_ke_tong_hop(danh_sach_loc) {
+        let tong_lich = danh_sach_loc.length;
+        let tong_gio = 0;
+        let tong_luong = 0;
+
+        danh_sach_loc.forEach(lich => {
+            if (lich.gio_bat_dau && lich.gio_ket_thuc) {
+                const [h1, m1] = lich.gio_bat_dau.split(':').map(Number);
+                const [h2, m2] = lich.gio_ket_thuc.split(':').map(Number);
+                const phut_bd = h1 * 60 + m1;
+                const phut_kt = h2 * 60 + m2;
+                const phut_lam = phut_kt > phut_bd ? phut_kt - phut_bd : (24 * 60 - phut_bd) + phut_kt;
+                const gio_lam = phut_lam / 60;
+                tong_gio += gio_lam;
+                
+                // Tìm công việc để lấy lương/giờ
+                const cong_viec = danh_sach_cong_viec_global.find(cv => cv.id === lich.cong_viec_id);
+                if (cong_viec) {
+                    tong_luong += gio_lam * cong_viec.luong_gio;
+                }
+            }
+        });
+
+        // Cập nhật hiển thị
+        const tongLichEl = document.getElementById('tong-lich-summary');
+        const tongGioEl = document.getElementById('tong-gio-summary');
+        const tongLuongEl = document.getElementById('tong-luong-summary');
+        const luongTbEl = document.getElementById('luong-tb-summary');
+
+        if (tongLichEl) tongLichEl.textContent = tong_lich;
+        if (tongGioEl) tongGioEl.textContent = `${tong_gio.toFixed(1)}h`;
+        if (tongLuongEl) tongLuongEl.textContent = dinh_dang_tien(tong_luong);
+        if (luongTbEl) luongTbEl.textContent = tong_lich > 0 ? dinh_dang_tien(tong_luong / tong_lich) : dinh_dang_tien_te(0);
+    }
+
+    // ================================
+    // GOOGLE CALENDAR INITIALIZATION
+    // ================================
+    async function khoi_tao_google_calendar() {
+        try {
+            if (window.googleCalendarManager) {
+                await window.googleCalendarManager.khoi_tao();
+                const da_xac_thuc = window.googleCalendarManager.kiem_tra_ket_noi();
+                cap_nhat_trang_thai_google(da_xac_thuc);
+            }
+        } catch (error) {
+            console.error('Lỗi khởi tạo Google Calendar:', error);
+            cap_nhat_trang_thai_google(false);
+        }
+    }
+
+    async function dang_nhap_google() {
+        try {
+            if (window.googleCalendarManager) {
+                await window.googleCalendarManager.dang_nhap();
+                cap_nhat_trang_thai_google(true);
+                hien_thi_thong_bao('Đã kết nối Google Calendar thành công!', 'success');
+            }
+        } catch (error) {
+            console.error('Lỗi đăng nhập Google:', error);
+            hien_thi_thong_bao('Lỗi kết nối Google Calendar!', 'error');
+            cap_nhat_trang_thai_google(false);
+        }
+    }
+
+    async function dang_xuat_google() {
+        try {
+            if (window.googleCalendarManager) {
+                await window.googleCalendarManager.dang_xuat();
+                cap_nhat_trang_thai_google(false);
+                hien_thi_thong_bao('Đã ngắt kết nối Google Calendar!', 'success');
+            }
+        } catch (error) {
+            console.error('Lỗi đăng xuất Google:', error);
+            hien_thi_thong_bao('Lỗi ngắt kết nối Google Calendar!', 'error');
+        }
+    }
+
+    // ================================
+    // GOOGLE CALENDAR INTEGRATION
+    // ================================
+    async function dong_bo_google_calendar(lich_id) {
+        try {
+            if (!window.googleCalendarManager?.kiem_tra_ket_noi()) {
+                hien_thi_thong_bao('Vui lòng kết nối Google Calendar trước!', 'error');
+                return;
+            }
+
+            const lich_lam = danh_sach_lich_lam_global.find(l => l.id === lich_id);
+            if (!lich_lam) {
+                throw new Error('Không tìm thấy lịch làm việc');
+            }
+
+            await dong_bo_lich_len_google(lich_lam);
+            hien_thi_thong_bao('Đã đồng bộ lên Google Calendar!', 'success');
+            
+        } catch (error) {
+            hien_thi_thong_bao(`Lỗi đồng bộ: ${error.message}`, 'error');
+        }
+    }
+
+    async function dong_bo_lich_len_google(lich_lam) {
+        const cong_viec = danh_sach_cong_viec_global.find(cv => cv.id === lich_lam.cong_viec_id);
+        if (!cong_viec) {
+            throw new Error('Không tìm thấy thông tin công việc');
+        }
+
+        const thong_tin_lich = {
+            ten_cong_viec: cong_viec.ten_cong_viec,
+            ngay_lam: lich_lam.ngay_lam,
+            gio_bat_dau: lich_lam.gio_bat_dau,
+            gio_ket_thuc: lich_lam.gio_ket_thuc,
+            dia_diem: lich_lam.dia_diem || cong_viec.dia_diem_mac_dinh || '',
+            ghi_chu: lich_lam.ghi_chu || `Lương: ${dinh_dang_tien(cong_viec.luong_gio)}/giờ`,
+            mau_sac: cong_viec.mau_sac
+        };
+
+        const result = await window.googleCalendarManager.tao_event(thong_tin_lich);
+        
+        if (result.thanh_cong) {
+            // Cập nhật trạng thái đồng bộ trong database
+            await fetch(`/api/lich-lam/${lich_lam.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ...lich_lam,
+                    dong_bo_google: true,
+                    google_event_id: result.google_event_id
+                })
+            });
+            
+            // Reload danh sách
+            await tai_danh_sach_lich_lam();
+        } else {
+            throw new Error(result.loi);
+        }
+    }
+
+    function cap_nhat_trang_thai_google(da_xac_thuc) {
+        const loading = document.getElementById('loading-google');
+        const text = document.getElementById('text-trang-thai-google');
+        const btnDangNhap = document.getElementById('btn-dang-nhap-google');
+        const btnDangXuat = document.getElementById('btn-dang-xuat-google');
+        const btnLamMoiToken = document.getElementById('btn-lam-moi-token');
+        const cardLichDongBo = document.getElementById('card-lich-dong-bo');
+        const btnLamMoi = document.getElementById('btn-lam-moi-su-kien');
+        const btnTaoSK = document.getElementById('btn-tao-su-kien-google');
+        const btnTaoLichHangLoat = document.getElementById('btn-tao-lich-hang-loat');
+
+        if (loading) loading.style.display = 'none';
+
+        if (da_xac_thuc) {
+            // Lấy thông tin session để hiển thị
+            const sessionInfo = window.googleCalendarManager?.lay_thong_tin_session();
+            let statusText = '<i class="fas fa-check-circle text-success me-2"></i>Đã kết nối Google Calendar';
+            
+            if (sessionInfo && sessionInfo.thoi_gian_con_lai !== null) {
+                const phutConLai = sessionInfo.thoi_gian_con_lai;
+                if (phutConLai > 60) {
+                    const gioConLai = Math.floor(phutConLai / 60);
+                    statusText += `<br><small class="text-muted">Token còn ${gioConLai}h${phutConLai % 60}m</small>`;
+                } else if (phutConLai > 0) {
+                    statusText += `<br><small class="text-muted">Token còn ${phutConLai} phút</small>`;
+                } else {
+                    statusText += `<br><small class="text-warning">Token sắp hết hạn</small>`;
+                }
+            }
+            
+            text.innerHTML = statusText;
+            btnDangNhap.style.display = 'none';
+            btnDangXuat.style.display = 'inline-block';
+            if (btnLamMoiToken) btnLamMoiToken.style.display = 'inline-block';
+            cardLichDongBo.style.display = 'block';
+            btnLamMoi.style.display = 'inline-block';
+            btnTaoSK.style.display = 'inline-block';
+            if (btnTaoLichHangLoat) btnTaoLichHangLoat.style.display = 'inline-block';
+        } else {
+            text.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i>Chưa kết nối Google Calendar<br><small class="text-muted">Kết nối một lần để sử dụng lâu dài</small>';
+            btnDangNhap.style.display = 'inline-block';
+            btnDangXuat.style.display = 'none';
+            if (btnLamMoiToken) btnLamMoiToken.style.display = 'none';
+            cardLichDongBo.style.display = 'none';
+            btnLamMoi.style.display = 'none';
+            btnTaoSK.style.display = 'none';
+            if (btnTaoLichHangLoat) btnTaoLichHangLoat.style.display = 'none';
+        }
+    }
+
+    async function tai_thong_tin_google_calendar(force=false) {
+        if (!window.googleCalendarManager?.kiem_tra_ket_noi()) {
+            hien_thi_thong_bao('Vui lòng đăng nhập Google Calendar trước!', 'error');
+            return;
+        }
+        
+        const dsContainer = document.getElementById('danh-sach-lich-dong-bo');
+        if (!dsContainer) {
+            console.error('Không tìm thấy container danh-sach-lich-dong-bo');
+            return;
+        }
+        
+        dsContainer.innerHTML = '<div class="p-4 text-center text-muted"><div class="spinner-border text-warning mb-2"></div><div>Đang tải sự kiện...</div></div>';
+        
+        try {
+            // Tải sự kiện cho tháng hiện tại hoặc tháng được chọn
+            await tai_su_kien_cho_thang_duoc_chon();
+            
+        } catch (e) {
+            dsContainer.innerHTML = `<div class='p-4 text-danger text-center'><i class="fas fa-exclamation-triangle me-2"></i>Lỗi: ${e.message}</div>`;
+        }
+    }
+
+    // Chuyển đổi chế độ xem
+    function chuyen_che_do_xem(mode) {
+        const listView = document.getElementById('danh-sach-lich-dong-bo');
+        const calendarView = document.getElementById('lich-view');
+        const btnList = document.getElementById('btn-xem-danh-sach');
+        const btnCalendar = document.getElementById('btn-xem-lich');
+
+        if (mode === 'list') {
+            listView.style.display = 'block';
+            calendarView.style.display = 'none';
+            btnList.classList.add('active');
+            btnCalendar.classList.remove('active');
+        } else {
+            listView.style.display = 'none';
+            calendarView.style.display = 'block';
+            btnList.classList.remove('active');
+            btnCalendar.classList.add('active');
+        }
+    }
+
+    // Hiển thị lịch calendar giống Google Calendar
+    function hien_thi_lich_calendar(su_kien_list) {
+        const container = document.getElementById('lich-calendar-container');
+        if (!container) return;
+
+        if (!su_kien_list || su_kien_list.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-calendar fa-3x mb-3"></i>
+                    <p>Không có sự kiện nào trong khoảng thời gian này</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Lấy tháng hiện tại (có thể được điều chỉnh qua navigation)
+        const hom_nay = new Date();
+        let thang_hien_tai, nam_hien_tai;
+        
+        if (window.calendar_current_month !== undefined && window.calendar_current_year !== undefined) {
+            thang_hien_tai = window.calendar_current_month;
+            nam_hien_tai = window.calendar_current_year;
+        } else {
+            thang_hien_tai = hom_nay.getMonth();
+            nam_hien_tai = hom_nay.getFullYear();
+            window.calendar_current_month = thang_hien_tai;
+            window.calendar_current_year = nam_hien_tai;
+        }
+        
+        // Tạo ngày đầu tháng
+        const dau_thang = new Date(nam_hien_tai, thang_hien_tai, 1);
+        const cuoi_thang = new Date(nam_hien_tai, thang_hien_tai + 1, 0);
+        
+        // Tìm ngày đầu tuần của tuần chứa ngày đầu tháng
+        const ngay_bat_dau = new Date(dau_thang);
+        ngay_bat_dau.setDate(dau_thang.getDate() - ((dau_thang.getDay() + 6) % 7)); // Thứ 2 làm ngày đầu tuần
+
+        const ten_thang = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                          'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+
+        let html = `
+            <div class="google-calendar-container">
+                <!-- Calendar Grid -->
+                <div class="calendar-grid bg-white rounded shadow-sm overflow-hidden">
+                    <!-- Header các ngày trong tuần -->
+                    <div class="calendar-weekdays row g-0">
+                        <div class="col weekday-header">Thứ 2</div>
+                        <div class="col weekday-header">Thứ 3</div>
+                        <div class="col weekday-header">Thứ 4</div>
+                        <div class="col weekday-header">Thứ 5</div>
+                        <div class="col weekday-header">Thứ 6</div>
+                        <div class="col weekday-header">Thứ 7</div>
+                        <div class="col weekday-header">Chủ nhật</div>
+                    </div>
+
+                    <!-- Các tuần trong tháng -->
+                    <div class="calendar-weeks">
+        `;
+
+        // Tạo 6 tuần (đủ cho mọi tháng)
+        for (let tuan = 0; tuan < 6; tuan++) {
+            html += `<div class="calendar-week row g-0">`;
+            
+            for (let ngay = 0; ngay < 7; ngay++) {
+                const ngay_hien_tai = new Date(ngay_bat_dau);
+                ngay_hien_tai.setDate(ngay_bat_dau.getDate() + (tuan * 7) + ngay);
+                
+                // Sử dụng local date thay vì UTC để tránh vấn đề timezone
+                const ngay_str = dinh_dang_ngay_local(ngay_hien_tai);
+                const hom_nay_str = dinh_dang_ngay_local(hom_nay);
+                const la_hom_nay = ngay_str === hom_nay_str;
+                const trong_thang = ngay_hien_tai.getMonth() === thang_hien_tai;
+                const la_cuoi_tuan = ngay === 5 || ngay === 6; // T7 và CN
+                
+                // Sự kiện trong ngày
+                const su_kien_ngay = su_kien_list.filter(sk => {
+                    const sk_ngay = new Date(sk.start?.dateTime || sk.start?.date);
+                    return dinh_dang_ngay_local(sk_ngay) === ngay_str;
+                });
+
+                html += `<div class="col calendar-day ${la_hom_nay ? 'today' : ''} ${!trong_thang ? 'other-month' : ''} ${la_cuoi_tuan ? 'weekend' : ''}">`;
+                html += `<div class="day-number">${ngay_hien_tai.getDate()}</div>`;
+                html += `<div class="day-events-container">`;
+                
+                // Hiển thị tối đa 3 sự kiện, còn lại hiển thị "+X more"
+                const max_events = 3;
+                su_kien_ngay.slice(0, max_events).forEach(sk => {
+                    const mau = sk.colorId ? window.googleCalendarManager?.mapping_mau_tu_google_color(sk.colorId) : '#1a73e8';
+                    const gio_bd = sk.start?.dateTime ? new Date(sk.start.dateTime).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : '';
+                    const gio_kt = sk.end?.dateTime ? new Date(sk.end.dateTime).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : '';
+                    const la_ca_ngay = !sk.start?.dateTime;
+                    
+                    html += `<div class="calendar-event ${la_ca_ngay ? 'all-day' : ''}" 
+                                style="background-color: ${mau}; color: white; position: relative;" 
+                                data-event-id="${sk.id}"
+                                title="${sk.summary}${sk.location ? ' - ' + sk.location : ''}">`;
+                    
+                    // Nút xóa (hiển thị khi hover)
+                    html += `<button class="calendar-event-delete" onclick="event.stopPropagation(); xoa_su_kien_google('${sk.id}')" title="Xóa sự kiện">
+                        <i class="fas fa-times"></i>
+                    </button>`;
+                    
+                    // Nội dung sự kiện
+                    html += `<div class="calendar-event-content" onclick="xem_chi_tiet_su_kien('${sk.id}')">`;
+                    
+                    if (la_ca_ngay) {
+                        html += `<div class="event-title">${sk.summary || 'Không có tiêu đề'}</div>`;
+                    } else {
+                        html += `<div class="event-time">${gio_bd} - ${gio_kt}</div>`;
+                        html += `<div class="event-title">${sk.summary || 'Không có tiêu đề'}</div>`;
+                    }
+                    
+                    html += `</div>`;
+                    html += `</div>`;
+                });
+
+                // Hiển thị "+X more" nếu có nhiều sự kiện hơn
+                if (su_kien_ngay.length > max_events) {
+                    const con_lai = su_kien_ngay.length - max_events;
+                    html += `<div class="calendar-event-more" onclick="xem_them_su_kien('${ngay_str}')">
+                        +${con_lai} sự kiện khác
+                    </div>`;
+                }
+                
+                html += `</div>`;
+                html += `</div>`;
+            }
+            
+            html += `</div>`;
+        }
+        
+        html += `
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    // Chuyển tháng trong calendar view
+    async function chuyen_thang(direction) {
+        // Chỉ khởi tạo nếu chưa có giá trị
+        if (window.calendar_current_month === undefined || window.calendar_current_year === undefined) {
+            const hom_nay = new Date();
+            window.calendar_current_month = hom_nay.getMonth();
+            window.calendar_current_year = hom_nay.getFullYear();
+        }
+        
+        // Cập nhật tháng
+        window.calendar_current_month += direction;
+        
+        // Xử lý overflow/underflow
+        if (window.calendar_current_month > 11) {
+            window.calendar_current_month = 0;
+            window.calendar_current_year++;
+        } else if (window.calendar_current_month < 0) {
+            window.calendar_current_month = 11;
+            window.calendar_current_year--;
+        }
+        
+        // Cập nhật hiển thị tháng/năm trong header
+        cap_nhat_hien_thi_thang_nam();
+        
+        // Tải sự kiện cho tháng được chọn
+        await tai_su_kien_cho_thang_duoc_chon();
+    }
+
+    // Tải sự kiện cho tháng hiện tại được chọn
+    async function tai_su_kien_cho_thang_duoc_chon() {
+        if (!window.googleCalendarManager?.kiem_tra_ket_noi()) {
+            return;
+        }
+        
+        // Sử dụng giá trị hiện tại hoặc khởi tạo nếu chưa có
+        let thang, nam;
+        if (window.calendar_current_month !== undefined && window.calendar_current_year !== undefined) {
+            thang = window.calendar_current_month;
+            nam = window.calendar_current_year;
+        } else {
+            const hom_nay = new Date();
+            thang = hom_nay.getMonth();
+            nam = hom_nay.getFullYear();
+            window.calendar_current_month = thang;
+            window.calendar_current_year = nam;
+        }
+        
+        // Tạo khoảng thời gian cho tháng được chọn
+        const dau_thang = new Date(nam, thang, 1);
+        const cuoi_thang = new Date(nam, thang + 1, 0, 23, 59, 59);
+        
+        try {
+            const ket_qua = await window.googleCalendarManager.lay_su_kien_trong_khoang(
+                dau_thang.toISOString(), 
+                cuoi_thang.toISOString()
+            );
+            
+            if (!ket_qua.thanh_cong) throw new Error(ket_qua.loi || 'Không thể tải sự kiện');
+            
+            danh_sach_su_kien_google = ket_qua.du_lieu || [];
+            
+            // Cập nhật cả 2 view
+            hien_thi_danh_sach_su_kien_google(danh_sach_su_kien_google);
+            hien_thi_lich_calendar(danh_sach_su_kien_google);
+            
+            // Cập nhật thông tin phạm vi
+            cap_nhat_thong_tin_pham_vi_loc(danh_sach_su_kien_google.length, danh_sach_su_kien_google.length);
+            
+            // Cập nhật hiển thị tháng/năm trong header
+            cap_nhat_hien_thi_thang_nam();
+            
+        } catch (e) {
+            console.error('Lỗi tải sự kiện cho tháng:', e);
+            hien_thi_thong_bao(`Lỗi tải sự kiện: ${e.message}`, 'error');
+        }
+    }
+
+    // Xem chi tiết sự kiện
+    function xem_chi_tiet_su_kien(event_id) {
+        const su_kien = danh_sach_su_kien_google.find(sk => sk.id === event_id);
+        if (!su_kien) return;
+        
+        mo_modal_sua_su_kien_google(event_id);
+    }
+
+    // Xem thêm sự kiện trong ngày
+    function xem_them_su_kien(ngay_str) {
+        const su_kien_ngay = danh_sach_su_kien_google.filter(sk => {
+            const sk_ngay = new Date(sk.start?.dateTime || sk.start?.date);
+            return dinh_dang_ngay_local(sk_ngay) === ngay_str;
+        });
+        
+        let modal_content = `
+            <div class="modal fade" id="modal-su-kien-ngay" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Sự kiện ngày ${new Date(ngay_str).toLocaleDateString('vi-VN')}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="list-group">
+        `;
+        
+        su_kien_ngay.forEach(sk => {
+            const mau = sk.colorId ? window.googleCalendarManager?.mapping_mau_tu_google_color(sk.colorId) : '#1a73e8';
+            const gio_bd = sk.start?.dateTime ? new Date(sk.start.dateTime).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : 'Cả ngày';
+            
+            modal_content += `
+                <div class="list-group-item list-group-item-action" onclick="xem_chi_tiet_su_kien('${sk.id}')" style="cursor: pointer;">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3" style="width: 4px; height: 40px; background-color: ${mau}; border-radius: 2px;"></div>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold">${sk.summary || 'Không có tiêu đề'}</div>
+                            <small class="text-muted">${gio_bd}</small>
+                            ${sk.location ? `<br><small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>${sk.location}</small>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        modal_content += `
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Xóa modal cũ nếu có
+        const old_modal = document.getElementById('modal-su-kien-ngay');
+        if (old_modal) old_modal.remove();
+        
+        // Thêm modal mới
+        document.body.insertAdjacentHTML('beforeend', modal_content);
+        
+        // Hiển thị modal
+        const modal = new bootstrap.Modal(document.getElementById('modal-su-kien-ngay'));
+        modal.show();
+    }
+
+    async function tai_su_kien_google() {
+        if (!window.googleCalendarManager || !window.googleCalendarManager.is_authenticated) {
+            return;
+        }
+
+        try {
+            // Sử dụng hàm tải sự kiện theo tháng được chọn
+            await tai_su_kien_cho_thang_duoc_chon();
+            
+            } catch (error) {
+            console.error('Lỗi khi tải sự kiện Google Calendar:', error);
+            hien_thi_thong_bao('Lỗi khi tải sự kiện từ Google Calendar', 'error');
+        }
+    }
+
+    function cap_nhat_su_kien_google_tab() {
+        if (window.googleCalendarManager && window.googleCalendarManager.is_authenticated) {
+            tai_su_kien_google();
+        }
+    }
+
+    // Gắn sự kiện khi tab được chọn
+    document.getElementById('nav-google-tab').addEventListener('shown.bs.tab', function() {
+        cap_nhat_su_kien_google_tab();
+    });
+
+    function hien_thi_danh_sach_su_kien_google(ds) {
+        const container = document.getElementById('danh-sach-lich-dong-bo');
+        if (!ds.length) { container.innerHTML = '<div class="p-4 text-center text-muted">Không có sự kiện trong khoảng thời gian này</div>'; return; }
+        container.innerHTML = ds.map(ev => {
+            const id = ev.id;
+            const summary = ev.summary || '(Không tiêu đề)';
+            const start = ev.start?.dateTime || ev.start?.date;
+            const end = ev.end?.dateTime || ev.end?.date;
+            const ngay = start?.substring(0,10);
+            const gio_bd = start?.substring(11,16) || '--';
+            const gio_kt = end?.substring(11,16) || '--';
+            return `<div class="list-group-item" data-id="${id}">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="fw-bold">${summary}</div>
+                    <small class="text-muted"><i class="fas fa-calendar-alt me-1"></i>${ngay} <i class="fas fa-clock ms-2 me-1"></i>${gio_bd} - ${gio_kt}</small>
+                    ${ev.location ? `<br><small><i class='fas fa-map-marker-alt text-warning me-1'></i>${ev.location}</small>`:''}
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="mo_modal_sua_su_kien_google('${id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-outline-danger" onclick="xoa_su_kien_google('${id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        </div>`;
+        }).join('');
+    }
+
+    async function tao_su_kien_google() {
+        const form = document.getElementById('form-tao-su-kien-google');
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        try {
+            const thong_tin = {
+                ten_cong_viec: document.getElementById('gc-ten-su-kien').value.trim(),
+                ngay_lam: document.getElementById('gc-ngay').value,
+                gio_bat_dau: document.getElementById('gc-gio-bat-dau').value,
+                gio_ket_thuc: document.getElementById('gc-gio-ket-thuc').value,
+                dia_diem: document.getElementById('gc-dia_diem').value.trim(),
+                ghi_chu: document.getElementById('gc-ghi-chu').value.trim(),
+                mau_sac: document.getElementById('gc-mau-sac').value
+            };
+            
+            // Bước 1: Lấy danh sách công việc có sẵn
+            const cong_viec_response = await fetch('/api/cong-viec');
+            const cong_viec_data = await cong_viec_response.json();
+            
+            let cong_viec_id;
+            if (cong_viec_data.thanh_cong && cong_viec_data.du_lieu.length > 0) {
+                // Tìm công việc có tên giống hoặc dùng công việc đầu tiên
+                const existing_job = cong_viec_data.du_lieu.find(cv => 
+                    cv.ten_cong_viec.toLowerCase().includes(thong_tin.ten_cong_viec.toLowerCase())
+                ) || cong_viec_data.du_lieu[0];
+                
+                cong_viec_id = existing_job.id;
+                } else {
+                // Tạo công việc mới nếu không có
+                const new_job_response = await fetch('/api/cong-viec', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        ten_cong_viec: thong_tin.ten_cong_viec,
+                        luong_gio: 0,
+                        mau_sac: thong_tin.mau_sac,
+                        dia_diem_mac_dinh: thong_tin.dia_diem,
+                        mo_ta: `Tạo từ Google Calendar: ${thong_tin.ghi_chu}`
+                    })
+                });
+                
+                const new_job_data = await new_job_response.json();
+                if (new_job_data.thanh_cong) {
+                    cong_viec_id = new_job_data.du_lieu.id;
+                    } else {
+                    throw new Error('Không thể tạo công việc: ' + new_job_data.loi);
+                }
+            }
+            
+            // Bước 2: Tạo lịch làm việc trong database TRƯỚC
+            const lich_lam_response = await fetch('/api/lich-lam', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    cong_viec_id: cong_viec_id,
+                    ngay_lam: thong_tin.ngay_lam,
+                    gio_bat_dau: thong_tin.gio_bat_dau,
+                    gio_ket_thuc: thong_tin.gio_ket_thuc,
+                    dia_diem: thong_tin.dia_diem,
+                    ghi_chu: thong_tin.ghi_chu,
+                    dong_bo_google: false // Sẽ update sau khi tạo Google event
+                })
+            });
+            
+            const lich_lam_data = await lich_lam_response.json();
+            if (!lich_lam_data.thanh_cong) {
+                console.error('❌ Lỗi tạo lịch làm việc:', lich_lam_data.loi);
+                throw new Error('Lỗi lưu lịch vào database: ' + lich_lam_data.loi);
+            }
+            
+            const lich_lam_id = lich_lam_data.du_lieu.id;
+            // Bước 3: Tạo event trên Google Calendar (tùy chọn)
+            try {
+                const kq_google = await window.googleCalendarManager.tao_event(thong_tin);
+                
+                if (kq_google.thanh_cong) {
+                    // Cập nhật lịch làm việc với Google event info
+                    await fetch(`/api/lich-lam/${lich_lam_id}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            dong_bo_google: true,
+                            google_event_id: kq_google.google_event_id,
+                            google_event_link: kq_google.link
+                        })
+                    });
+                    } else {
+                    console.warn('⚠️ Không thể tạo Google event:', kq_google.loi);
+                }
+            } catch (google_error) {
+                console.warn('⚠️ Lỗi Google Calendar (bỏ qua):', google_error);
+            }
+            
+            hien_thi_thong_bao('Đã tạo lịch làm việc và đồng bộ Google Calendar!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('modal-tao-su-kien-google')).hide();
+            form.reset();
+            
+            // Tải lại dữ liệu
+            await tai_thong_tin_google_calendar(true);
+            await tai_danh_sach_lich_lam();
+            
+        } catch(e) { 
+            console.error('❌ Lỗi tạo sự kiện:', e);
+            hien_thi_thong_bao('Lỗi tạo sự kiện: '+ e.message, 'error'); 
+        }
+    }
+
+    function mo_modal_sua_su_kien_google(id) {
+        const ev = danh_sach_su_kien_google.find(e => e.id === id);
+        if (!ev) return;
+        document.getElementById('gc-event-id').value = id;
+        document.getElementById('gc-sua-ten-su-kien').value = ev.summary || '';
+        const start = ev.start?.dateTime || ev.start?.date;
+        const end = ev.end?.dateTime || ev.end?.date;
+        document.getElementById('gc-sua-ngay').value = start.substring(0,10);
+        if (start.length > 10) document.getElementById('gc-sua-gio-bat-dau').value = start.substring(11,16);
+        if (end.length > 10) document.getElementById('gc-sua-gio-ket-thuc').value = end.substring(11,16);
+        document.getElementById('gc-sua-dia-diem').value = ev.location || '';
+        document.getElementById('gc-sua-ghi-chu').value = ev.description || '';
+        document.getElementById('gc-sua-mau-sac').value = '#007bff';
+        new bootstrap.Modal(document.getElementById('modal-sua-su-kien-google')).show();
+    }
+
+    async function cap_nhat_su_kien_google() {
+        const form = document.getElementById('form-sua-su-kien-google');
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        const id = document.getElementById('gc-event-id').value;
+        try {
+            const thong_tin = {
+                ten_cong_viec: document.getElementById('gc-sua-ten-su-kien').value.trim(),
+                ngay_lam: document.getElementById('gc-sua-ngay').value,
+                gio_bat_dau: document.getElementById('gc-sua-gio-bat-dau').value,
+                gio_ket_thuc: document.getElementById('gc-sua-gio-ket-thuc').value,
+                dia_diem: document.getElementById('gc-sua-dia-diem').value.trim(),
+                ghi_chu: document.getElementById('gc-sua-ghi-chu').value.trim(),
+                mau_sac: document.getElementById('gc-sua-mau-sac').value
+            };
+            
+            // 1. Cập nhật sự kiện trên Google Calendar
+            const kqGoogle = await window.googleCalendarManager.cap_nhat_event(id, thong_tin);
+            if (!kqGoogle.thanh_cong) throw new Error(kqGoogle.loi);
+            
+            // 2. Cập nhật dữ liệu lịch làm việc trong database theo google_event_id
+            const duLieuCapNhat = {
+                summary: thong_tin.ten_cong_viec,
+                start: {
+                    dateTime: `${thong_tin.ngay_lam}T${thong_tin.gio_bat_dau}:00`
+                },
+                end: {
+                    dateTime: `${thong_tin.ngay_lam}T${thong_tin.gio_ket_thuc}:00`
+                },
+                location: thong_tin.dia_diem,
+                description: thong_tin.ghi_chu
+            };
+            
+            const responseDb = await fetch(`/api/lich-lam/google-event/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(duLieuCapNhat)
+            });
+            
+            const ketQuaDb = await responseDb.json();
+            
+            // Hiển thị thông báo tổng hợp
+            if (ketQuaDb.thanh_cong) {
+                const soLuongCapNhat = ketQuaDb.du_lieu ? ketQuaDb.du_lieu.length : 0;
+                if (soLuongCapNhat > 0) {
+                    hien_thi_thong_bao(`Đã cập nhật sự kiện Google Calendar và ${soLuongCapNhat} lịch làm việc!`, 'success');
+                } else {
+                    hien_thi_thong_bao('Đã cập nhật sự kiện Google Calendar thành công!', 'success');
+                }
+            } else {
+                hien_thi_thong_bao('Đã cập nhật sự kiện Google Calendar nhưng có lỗi khi cập nhật lịch làm: ' + ketQuaDb.loi, 'warning');
+            }
+            
+            // 3. Đóng modal và làm mới
+            bootstrap.Modal.getInstance(document.getElementById('modal-sua-su-kien-google')).hide();
+            
+            // 4. Tự động làm mới sau 0.5s
+            setTimeout(() => {
+                tai_thong_tin_google_calendar(true);
+                // Cũng làm mới tab thống kê nếu đang hiển thị
+                const tabThongKe = document.getElementById('thong-ke');
+                if (tabThongKe && tabThongKe.classList.contains('active')) {
+                    tai_thong_ke_thang();
+                }
+            }, 500);
+            
+        } catch(e) { 
+            hien_thi_thong_bao('Lỗi cập nhật sự kiện: ' + e.message, 'error'); 
+        }
+    }
+
+    async function xoa_su_kien_google(id) {
+        // Hiển thị thông báo xác nhận bằng toast thay vì confirm
+        const xacNhan = await hien_thi_xac_nhan('Bạn có chắc chắn muốn xóa sự kiện này trên Google Calendar?');
+        if (!xacNhan) return;
+        
+        try {
+            // 1. Xóa sự kiện trên Google Calendar
+            const kqGoogle = await window.googleCalendarManager.xoa_event(id);
+            if (!kqGoogle.thanh_cong) throw new Error(kqGoogle.loi);
+            
+            // 2. Xóa dữ liệu lịch làm việc trong database theo google_event_id
+            const responseDb = await fetch(`/api/lich-lam/google-event/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const ketQuaDb = await responseDb.json();
+            
+            // Hiển thị thông báo tổng hợp
+            if (ketQuaDb.thanh_cong) {
+                const soLuongXoa = ketQuaDb.so_luong_xoa || 0;
+                if (soLuongXoa > 0) {
+                    hien_thi_thong_bao(`Đã xóa sự kiện Google Calendar và ${soLuongXoa} lịch làm việc liên quan!`, 'success');
+                } else {
+                    hien_thi_thong_bao('Đã xóa sự kiện Google Calendar thành công!', 'success');
+                }
+            } else {
+                hien_thi_thong_bao('Đã xóa sự kiện Google Calendar nhưng có lỗi khi xóa dữ liệu lịch làm: ' + ketQuaDb.loi, 'warning');
+            }
+            
+            // 3. Cập nhật danh sách hiển thị
+            danh_sach_su_kien_google = danh_sach_su_kien_google.filter(e => e.id !== id);
+            hien_thi_danh_sach_su_kien_google(danh_sach_su_kien_google);
+            
+            // 4. Tự động làm mới sau 0.5s
+            setTimeout(() => {
+                tai_thong_tin_google_calendar(true);
+                // Cũng làm mới tab thống kê nếu đang hiển thị
+                const tabThongKe = document.getElementById('thong-ke');
+                if (tabThongKe && tabThongKe.classList.contains('active')) {
+                    tai_thong_ke_thang();
+                }
+            }, 500);
+            
+        } catch(e) { 
+            hien_thi_thong_bao('Lỗi xóa sự kiện: ' + e.message, 'error'); 
+        }
+    }
+
+    // ================================
+    // BỔ SUNG: TẠO LỊCH HÀNG LOẠT NHIỀU NGÀY / GIỜ
+    // ================================
+
+    // Khi mở modal => nạp danh sách công việc vào select (tái sử dụng danh_sach_cong_viec_global)
+    const modalHangLoatEl = document.getElementById('modal-tao-lich-hang-loat');
+    if (modalHangLoatEl) {
+      modalHangLoatEl.addEventListener('shown.bs.modal', () => {
+        cap_nhat_select_cong_viec_hang_loat();
+        if (!document.querySelector('#ds-ca-lam-hang-loat tr')) {
+          // Thêm một hàng mẫu nếu chưa có
+          them_ca_lam_hang_loat();
+        }
+      });
+      modalHangLoatEl.addEventListener('hidden.bs.modal', () => {
+        document.getElementById('form-tao-lich-hang-loat').reset();
+        document.getElementById('ds-ca-lam-hang-loat').innerHTML = '';
+        cap_nhat_thong_ke_hang_loat();
+      });
+    }
+
+    function cap_nhat_select_cong_viec_hang_loat() {
+      const select = document.getElementById('hl-cong-viec-id');
+      if (!select) return;
+      const current = select.value;
+      select.innerHTML = '<option value="">Chọn công việc</option>' + danh_sach_cong_viec_global.map(cv => `<option value="${cv.id}">${cv.ten_cong_viec}</option>`).join('');
+      if (current) select.value = current;
+    }
+
+    function them_ca_lam_hang_loat(gia_tri = {}) {
+      const tbody = document.getElementById('ds-ca-lam-hang-loat');
+      if (!tbody) {
+        console.error('Không tìm thấy tbody ds-ca-lam-hang-loat');
+        return;
+      }
+      const id_row = ++dem_hang_hl;
+      const hom_nay = dinh_dang_ngay_local(new Date());
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr id="hl-row-${id_row}">
+          <td><input type="date" class="form-control form-control-sm" value="${gia_tri.ngay_lam || hom_nay}" required></td>
+          <td><input type="time" class="form-control form-control-sm" value="${gia_tri.gio_bat_dau || '00:00'}" required></td>
+          <td><input type="time" class="form-control form-control-sm" value="${gia_tri.gio_ket_thuc || '00:00'}" required></td>
+          <td><input type="text" class="form-control form-control-sm" placeholder="Mặc định" value="${gia_tri.dia_diem || ''}"></td>
+          <td><input type="text" class="form-control form-control-sm" placeholder="--" value="${gia_tri.ghi_chu || ''}"></td>
+          <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm" title="Xóa" onclick="xoa_ca_lam_hl(${id_row})"><i class="fas fa-times"></i></button></td>
+        </tr>`);
+      cap_nhat_thong_ke_hang_loat();
+      }
+
+    function xoa_ca_lam_hl(id_row) {
+      const tr = document.getElementById(`hl-row-${id_row}`);
+      if (tr) tr.remove();
+      cap_nhat_thong_ke_hang_loat();
+    }
+
+    function chon_nhanh_ngay_tuan() {
+      // Thêm 7 ngày tới (sử dụng giờ từ hàng đầu tiên hoặc mặc định 00:00)
+      let gioBD = '00:00', gioKT = '00:00';
+      const firstRow = document.querySelector('#ds-ca-lam-hang-loat tr');
+      if (firstRow) {
+        const inputs = firstRow.querySelectorAll('input[type="time"]');
+        if (inputs.length >= 2) { 
+          gioBD = inputs[0].value || '00:00'; 
+          gioKT = inputs[1].value || '00:00'; 
+        }
+      }
+      const today = new Date();
+      for (let i=0;i<7;i++) {
+        const d = new Date(); d.setDate(today.getDate()+i);
+        them_ca_lam_hang_loat({ ngay_lam: dinh_dang_ngay_local(d), gio_bat_dau: gioBD, gio_ket_thuc: gioKT });
+      }
+      }
+
+    // Function làm mới token Google Calendar thủ công
+    async function lam_moi_token_thu_cong() {
+        try {
+            const btn = document.getElementById('btn-lam-moi-token');
+            if (btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<div class="spinner-border spinner-border-sm me-1"></div>Đang làm mới...';
+                btn.disabled = true;
+            }
+
+            if (!window.googleCalendarManager) {
+                throw new Error('Google Calendar Manager chưa được khởi tạo');
+            }
+
+            // Sử dụng function có sẵn để làm mới token
+            const result = await window.googleCalendarManager.lam_moi_token_tu_dong();
+            
+            if (result) {
+                hien_thi_thong_bao('Đã làm mới kết nối thành công!', 'success');
+                // Cập nhật lại trạng thái UI
+                cap_nhat_trang_thai_google(true);
+                // Tải lại sự kiện
+                await tai_thong_tin_google_calendar(true);
+            } else {
+                throw new Error('Không thể làm mới token');
+            }
+
+        } catch (error) {
+            console.error('Lỗi làm mới token:', error);
+            hien_thi_thong_bao('Lỗi làm mới kết nối: ' + error.message, 'error');
+        } finally {
+            const btn = document.getElementById('btn-lam-moi-token');
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-redo me-1"></i>Làm mới kết nối';
+                btn.disabled = false;
+            }
+        }
+    }
+
+    function cap_nhat_thong_ke_hang_loat() {
+      const rows = document.querySelectorAll('#ds-ca-lam-hang-loat tr');
+      const thongKeEl = document.getElementById('hl-thong-ke-row');
+      if (thongKeEl) {
+        thongKeEl.textContent = `${rows.length} sự kiện`;
+      } else {
+        console.error('Không tìm thấy element hl-thong-ke-row');
+      }
+    }
+
+    // Kiểm tra các element modal khi DOM ready
+    function kiem_tra_modal_hang_loat() {
+      const modal = document.getElementById('modal-tao-lich-hang-loat');
+      const tbody = document.getElementById('ds-ca-lam-hang-loat');
+      const thongKe = document.getElementById('hl-thong-ke-row');
+      
+      if (modal && tbody && thongKe) {
+        return true;
+      }
+      return false;
+    }
+
+    // ================================
+    // BỘ LỌC GOOGLE CALENDAR
+    // ================================
+    
+    function ap_dung_loc_google() {
+        const thoi_gian = document.getElementById('loc-thoi-gian-gc').value;
+        const loai_su_kien = document.getElementById('loc-loai-su-kien-gc').value;
+        
+        if (!danh_sach_su_kien_google || danh_sach_su_kien_google.length === 0) {
+            return;
+        }
+        
+        let su_kien_loc = [...danh_sach_su_kien_google];
+        
+        // Lọc theo thời gian
+        const hom_nay = new Date();
+        const dau_ngay = new Date(hom_nay.getFullYear(), hom_nay.getMonth(), hom_nay.getDate());
+        
+        switch (thoi_gian) {
+            case 'hom-nay':
+                const cuoi_ngay = new Date(dau_ngay.getTime() + 24 * 60 * 60 * 1000);
+                su_kien_loc = su_kien_loc.filter(sk => {
+                    const ngay_sk = new Date(sk.start?.dateTime || sk.start?.date);
+                    return ngay_sk >= dau_ngay && ngay_sk < cuoi_ngay;
+                });
+                break;
+                
+            case 'tuan-nay':
+                const dau_tuan = new Date(dau_ngay);
+                dau_tuan.setDate(dau_ngay.getDate() - ((dau_ngay.getDay() + 6) % 7)); // Thứ 2
+                const cuoi_tuan = new Date(dau_tuan.getTime() + 7 * 24 * 60 * 60 * 1000);
+                su_kien_loc = su_kien_loc.filter(sk => {
+                    const ngay_sk = new Date(sk.start?.dateTime || sk.start?.date);
+                    return ngay_sk >= dau_tuan && ngay_sk < cuoi_tuan;
+                });
+                break;
+                
+            case 'thang-nay':
+                const dau_thang = new Date(hom_nay.getFullYear(), hom_nay.getMonth(), 1);
+                const cuoi_thang = new Date(hom_nay.getFullYear(), hom_nay.getMonth() + 1, 0, 23, 59, 59);
+                su_kien_loc = su_kien_loc.filter(sk => {
+                    const ngay_sk = new Date(sk.start?.dateTime || sk.start?.date);
+                    return ngay_sk >= dau_thang && ngay_sk <= cuoi_thang;
+                });
+                break;
+                
+            case '7-ngay':
+                const sau_7_ngay = new Date(dau_ngay.getTime() + 7 * 24 * 60 * 60 * 1000);
+                su_kien_loc = su_kien_loc.filter(sk => {
+                    const ngay_sk = new Date(sk.start?.dateTime || sk.start?.date);
+                    return ngay_sk >= dau_ngay && ngay_sk < sau_7_ngay;
+                });
+                break;
+                
+            case '30-ngay':
+                const sau_30_ngay = new Date(dau_ngay.getTime() + 30 * 24 * 60 * 60 * 1000);
+                su_kien_loc = su_kien_loc.filter(sk => {
+                    const ngay_sk = new Date(sk.start?.dateTime || sk.start?.date);
+                    return ngay_sk >= dau_ngay && ngay_sk < sau_30_ngay;
+                });
+                break;
+                
+            case 'tat-ca':
+            default:
+                // Không lọc theo thời gian
+                break;
+        }
+        
+        // Lọc theo loại sự kiện
+        switch (loai_su_kien) {
+            case 'ca-ngay':
+                su_kien_loc = su_kien_loc.filter(sk => !sk.start?.dateTime);
+                break;
+            case 'co-gio':
+                su_kien_loc = su_kien_loc.filter(sk => sk.start?.dateTime);
+                break;
+            case 'tat-ca':
+            default:
+                // Không lọc theo loại
+                break;
+        }
+        
+        // Cập nhật hiển thị với dữ liệu đã lọc
+        hien_thi_danh_sach_su_kien_google(su_kien_loc);
+        hien_thi_lich_calendar_voi_loc(su_kien_loc);
+        
+        // Cập nhật thông tin phạm vi
+        cap_nhat_thong_tin_pham_vi_loc(su_kien_loc.length, danh_sach_su_kien_google.length);
+    }
+    
+    function xoa_loc_google() {
+        // Reset các select về giá trị mặc định
+        document.getElementById('loc-thoi-gian-gc').value = 'thang-nay';
+        document.getElementById('loc-loai-su-kien-gc').value = 'tat-ca';
+        
+        // Hiển thị lại tất cả sự kiện
+        hien_thi_danh_sach_su_kien_google(danh_sach_su_kien_google);
+        hien_thi_lich_calendar(danh_sach_su_kien_google);
+        
+        // Reset thông tin phạm vi
+        cap_nhat_thong_tin_pham_vi_loc(danh_sach_su_kien_google.length, danh_sach_su_kien_google.length);
+    }
+    
+    function hien_thi_lich_calendar_voi_loc(su_kien_list) {
+        // Tương tự hien_thi_lich_calendar nhưng với dữ liệu đã lọc
+        hien_thi_lich_calendar(su_kien_list);
+    }
+    
+    function cap_nhat_thong_tin_pham_vi_loc(so_luong_hien_thi, tong_so_luong) {
+        const thong_tin_el = document.getElementById('gc-thong-tin-pham-vi');
+        if (thong_tin_el) {
+            if (so_luong_hien_thi === tong_so_luong) {
+                thong_tin_el.textContent = `${tong_so_luong} sự kiện`;
+            } else {
+                thong_tin_el.textContent = `${so_luong_hien_thi}/${tong_so_luong} sự kiện`;
+            }
+        }
+    }
+
+    function cap_nhat_hien_thi_thang_nam() {
+        // Sử dụng giá trị hiện tại hoặc khởi tạo nếu chưa có
+        let thang, nam;
+        if (window.calendar_current_month !== undefined && window.calendar_current_year !== undefined) {
+            thang = window.calendar_current_month;
+            nam = window.calendar_current_year;
+        } else {
+            const hom_nay = new Date();
+            thang = hom_nay.getMonth();
+            nam = hom_nay.getFullYear();
+            window.calendar_current_month = thang;
+            window.calendar_current_year = nam;
+        }
+        
+        const ten_thang = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                          'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+        
+        const hien_thi_el = document.getElementById('hien-thi-thang-nam');
+        if (hien_thi_el) {
+            hien_thi_el.textContent = `${ten_thang[thang]} ${nam}`;
+        }
+        
+        }
+
+    // ================================
+    // Expose functions to global scope
+    window.them_ca_lam_hang_loat = them_ca_lam_hang_loat;
+    window.chon_nhanh_ngay_tuan = chon_nhanh_ngay_tuan;
+    window.xoa_ca_lam_hl = xoa_ca_lam_hl;
+    window.cap_nhat_thong_ke_hang_loat = cap_nhat_thong_ke_hang_loat;
+    window.tai_thong_tin_google_calendar = tai_thong_tin_google_calendar;
+    window.tai_su_kien_cho_thang_duoc_chon = tai_su_kien_cho_thang_duoc_chon;
+    window.chuyen_thang = chuyen_thang;
+    window.ap_dung_loc_google = ap_dung_loc_google;
+    window.xoa_loc_google = xoa_loc_google;
+    window.cap_nhat_hien_thi_thang_nam = cap_nhat_hien_thi_thang_nam;
+    window.lam_moi_token_thu_cong = lam_moi_token_thu_cong;
+
+    // Gọi kiểm tra khi DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        kiem_tra_modal_hang_loat();
+      }, 1000);
+    });
+
+    // Hàm cập nhật thống kê cho tab lịch làm việc
+    function cap_nhat_thong_ke_lich_lam(danh_sach_lich) {
+      if (!danh_sach_lich || !Array.isArray(danh_sach_lich)) {
+        danh_sach_lich = danh_sach_lich_lam_global || [];
+      }
+      
+      // Tính tổng số lịch làm việc
+      const tong_lich = danh_sach_lich.length;
+      
+      // Tính tổng giờ làm
+      let tong_gio = 0;
+      danh_sach_lich.forEach(lich => {
+        if (lich.gio_bat_dau && lich.gio_ket_thuc) {
+          const [gio_bd_h, gio_bd_m] = lich.gio_bat_dau.split(':').map(Number);
+          const [gio_kt_h, gio_kt_m] = lich.gio_ket_thuc.split(':').map(Number);
+          const phut_bd = gio_bd_h * 60 + gio_bd_m;
+          const phut_kt = gio_kt_h * 60 + gio_kt_m;
+          if (phut_kt > phut_bd) {
+            tong_gio += (phut_kt - phut_bd) / 60;
+          }
+        }
+      });
+      
+      // Cập nhật giao diện thống kê (nếu có)
+      const thong_ke_element = document.getElementById('thong-ke-lich-lam');
+      if (thong_ke_element) {
+        thong_ke_element.innerHTML = `
+          <div class="row">
+            <div class="col-6">
+              <div class="card text-center">
+                <div class="card-body">
+                  <h5 class="card-title">${tong_lich}</h5>
+                  <p class="card-text">Tổng lịch</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="card text-center">
+                <div class="card-body">
+                  <h5 class="card-title">${tong_gio.toFixed(1)}h</h5>
+                  <p class="card-text">Tổng giờ</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      console.log(`[Thống kê] Tổng lịch: ${tong_lich}, Tổng giờ: ${tong_gio.toFixed(1)}h`);
+    }
+
+    async function tao_lich_hang_loat() {
+      try {
+        // Kiểm tra kết nối Google Calendar
+        if (!window.googleCalendarManager?.kiem_tra_ket_noi()) {
+          hien_thi_thong_bao('Vui lòng kết nối Google Calendar trước!', 'error');
+          return;
+        }
+
+        const form = document.getElementById('form-tao-lich-hang-loat');
+        const cong_viec_id = parseInt(document.getElementById('hl-cong-viec-id').value);
+        const rows = Array.from(document.querySelectorAll('#ds-ca-lam-hang-loat tr'));
+        if (!rows.length) { 
+          hien_thi_thong_bao('Chưa có sự kiện nào!', 'error'); 
+          return; 
+        }
+
+        // Thu thập dữ liệu
+        const dia_diem_mac_dinh = document.getElementById('hl-dia-diem').value.trim();
+        const mo_ta_chung = document.getElementById('hl-ghi-chu').value.trim();
+        
+        // Lấy thông tin công việc để đặt tên sự kiện
+        const cong_viec = cong_viec_id ? danh_sach_cong_viec_global.find(cv => cv.id === cong_viec_id) : null;
+        const ten_cong_viec = cong_viec ? cong_viec.ten_cong_viec : 'Sự kiện';
+
+        const danh_sach_su_kien = [];
+        for (const tr of rows) {
+          const inputs = tr.querySelectorAll('input');
+          const [ngay, gio_bd, gio_kt, dia_diem, mo_ta] = inputs;
+          if (!ngay.value || !gio_bd.value || !gio_kt.value) {
+            hien_thi_thong_bao('Thiếu thông tin ở một hàng!', 'error');
+            return;
+          }
+          if (gio_bd.value >= gio_kt.value) {
+            hien_thi_thong_bao('Giờ bắt đầu phải nhỏ hơn giờ kết thúc!', 'error');
+            return;
+          }
+          
+          // Tạo thông tin sự kiện Google
+          const thong_tin_su_kien = {
+            ten_cong_viec: ten_cong_viec,
+            ngay_lam: ngay.value,
+            gio_bat_dau: gio_bd.value,
+            gio_ket_thuc: gio_kt.value,
+            dia_diem: dia_diem.value.trim() || dia_diem_mac_dinh || '',
+            ghi_chu: mo_ta.value.trim() || mo_ta_chung || '',
+            mau_sac: cong_viec ? cong_viec.mau_sac : '#007bff'
+          };
+          
+          danh_sach_su_kien.push(thong_tin_su_kien);
+        }
+
+        // Hiển thị progress
+        const btn = document.querySelector('button[onclick="tao_lich_hang_loat()"]');
+        let original_html = '';
+        if (btn) {
+          original_html = btn.innerHTML;
+          btn.disabled = true;
+        }
+        
+        let thanh_cong = 0;
+        let that_bai = 0;
+
+        for (let i = 0; i < danh_sach_su_kien.length; i++) {
+          try {
+            if (btn) {
+              btn.innerHTML = `<div class="spinner-border spinner-border-sm me-1"></div>Đang tạo ${i + 1}/${danh_sach_su_kien.length}...`;
+            }
+            
+            // Bước 1: Tạo lịch làm việc trong database TRƯỚC
+            let lich_lam_id = null;
+            let google_event_info = null;
+            
+            if (cong_viec_id) {
+              const lich_lam_response = await fetch('/api/lich-lam', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                  cong_viec_id: cong_viec_id,
+                  ngay_lam: danh_sach_su_kien[i].ngay_lam,
+                  gio_bat_dau: danh_sach_su_kien[i].gio_bat_dau,
+                  gio_ket_thuc: danh_sach_su_kien[i].gio_ket_thuc,
+                  dia_diem: danh_sach_su_kien[i].dia_diem,
+                  ghi_chu: danh_sach_su_kien[i].ghi_chu,
+                  dong_bo_google: false // Sẽ update sau
+                })
+              });
+              
+              const lich_lam_data = await lich_lam_response.json();
+              if (lich_lam_data.thanh_cong) {
+                lich_lam_id = lich_lam_data.du_lieu.id;
+                } else {
+                console.error('❌ Lỗi tạo lịch làm việc:', lich_lam_data.loi);
+                throw new Error('Lỗi lưu lịch: ' + lich_lam_data.loi);
+              }
+            }
+            
+            // Bước 2: Tạo Google Calendar event (tùy chọn)
+            try {
+              const result = await window.googleCalendarManager.tao_event(danh_sach_su_kien[i]);
+              
+              if (result.thanh_cong) {
+                google_event_info = {
+                  google_event_id: result.google_event_id,
+                  google_event_link: result.link
+                };
+                // Cập nhật lịch làm việc với thông tin Google event
+                if (lich_lam_id) {
+                  await fetch(`/api/lich-lam/${lich_lam_id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                      dong_bo_google: true,
+                      google_event_id: result.google_event_id,
+                      google_event_link: result.link
+                    })
+                  });
+                  }
+              } else {
+                console.warn('⚠️ Không thể tạo Google event:', result.loi);
+              }
+            } catch (google_error) {
+              console.warn('⚠️ Lỗi Google Calendar (bỏ qua):', google_error);
+            }
+            
+            thanh_cong++;
+            } catch (error) {
+            that_bai++;
+            console.error(`❌ Lỗi tạo sự kiện ${i + 1}:`, error);
+          }
+        }
+
+        // Khôi phục nút
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = original_html;
+        }
+
+        // Thông báo kết quả
+        if (thanh_cong > 0) {
+          hien_thi_thong_bao(`Đã tạo ${thanh_cong} lịch làm việc và đồng bộ Google Calendar!${that_bai > 0 ? ` (${that_bai} thất bại)` : ''}`, 'success');
+          
+          // Đóng modal và reset form
+          bootstrap.Modal.getInstance(document.getElementById('modal-tao-lich-hang-loat')).hide();
+          document.getElementById('ds-ca-lam-hang-loat').innerHTML = '';
+          cap_nhat_thong_ke_hang_loat();
+          
+          // Làm mới danh sách
+          await tai_thong_tin_google_calendar(true);
+          await tai_danh_sach_lich_lam(); // Tải lại lịch làm việc
+        } else {
+          hien_thi_thong_bao('Không tạo được lịch làm việc nào!', 'error');
+        }
+
+      } catch (error) {
+        console.error('Lỗi tạo hàng loạt:', error);
+        hien_thi_thong_bao(`Lỗi: ${error.message}`, 'error');
+        
+        // Khôi phục nút nếu có lỗi
+        const btn = document.querySelector('button[onclick="tao_lich_hang_loat()"]');
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fab fa-google me-1"></i>Tạo Trên Google Calendar';
+        }
+      }
+    }
+
+    // ================================
+    // HÀM TIỆN ÍCH BỊ THIẾU (THÊM LẠI)
+    // ================================
+    function dinh_dang_tien(so_tien) {
+        try {
+            return dinh_dang_tien_te(so_tien);
+        } catch (e) {
+            console.warn('Lỗi định dạng tiền:', e, so_tien);
+            return so_tien + '₫';
+        }
+    }
+
+    function dinh_dang_ngay(ngay) {
+        try {
+            if (!(ngay instanceof Date)) ngay = new Date(ngay);
+            return ngay.toLocaleDateString('vi-VN');
+        } catch(e) {
+            console.warn('Lỗi định dạng ngày:', e, ngay);
+            return '';
+        }
+    }
+
+    function lay_ten_thu(thu_so) {
+        const ten_thu = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+        return ten_thu[thu_so] || '';
+    }
+
+    function tinh_gio_lam(gio_bat_dau, gio_ket_thuc) {
+        if (!gio_bat_dau || !gio_ket_thuc) return 0;
+        const [h1, m1] = gio_bat_dau.split(':').map(Number);
+        const [h2, m2] = gio_ket_thuc.split(':').map(Number);
+        const phut_bat_dau = h1 * 60 + m1;
+        const phut_ket_thuc = h2 * 60 + m2;
+        const gio_lam = Math.max(0, (phut_ket_thuc - phut_bat_dau) / 60);
+        return Math.round(gio_lam * 100) / 100;
+    }
+
+    function hien_thi_thong_bao(thong_bao, loai) {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${loai === 'success' ? 'success' : loai === 'error' ? 'danger' : 'info'} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${loai === 'success' ? 'fa-check-circle' : (loai === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle')} me-2"></i>
+                    ${thong_bao}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>`;
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '2000';
+            document.body.appendChild(container);
+        }
+        container.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { delay: 3500 });
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    }
+
+    // Function hiển thị xác nhận dạng modal nhỏ thay vì alert
+    function hien_thi_xac_nhan(thong_bao) {
+        return new Promise((resolve) => {
+            // Tạo modal xác nhận
+            const modalId = 'modal-xac-nhan-' + Date.now();
+            const modalHtml = `
+                <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-sm modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-dark">
+                                <h6 class="modal-title">
+                                    <i class="fas fa-question-circle me-2"></i>Xác nhận
+                                </h6>
+                            </div>
+                            <div class="modal-body text-center">
+                                <p class="mb-3">${thong_bao}</p>
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-action="cancel">
+                                        <i class="fas fa-times me-1"></i>Hủy
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" data-action="confirm">
+                                        <i class="fas fa-trash me-1"></i>Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Thêm modal vào DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const modalElement = document.getElementById(modalId);
+            const modal = new bootstrap.Modal(modalElement);
+            
+            // Xử lý click
+            modalElement.addEventListener('click', function(e) {
+                if (e.target.dataset.action === 'confirm') {
+                    modal.hide();
+                    resolve(true);
+                } else if (e.target.dataset.action === 'cancel') {
+                    modal.hide();
+                    resolve(false);
+                }
+            });
+            
+            // Cleanup khi đóng modal
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                modalElement.remove();
+            });
+            
+            // Hiển thị modal
+            modal.show();
+        });
+    }
+
+    // ================================
+    // LỌC LỊCH LÀM VIỆC (BỊ THIẾU)
+    // ================================
+    function xoa_bo_loc_lich() {
+        document.getElementById('loc-cong-viec').value = '';
+        document.getElementById('loc-tu-ngay').value = '';
+        document.getElementById('loc-den-ngay').value = '';
+        document.querySelectorAll('#danh-sach-lich-lam > div[data-cong-viec]')
+            .forEach(el => el.style.display = '');
+        cap_nhat_thong_ke_lich_lam(danh_sach_lich_lam_global);
+    }
+
+    // ================================
+    // ĐỒNG BỘ GOOGLE CALENDAR
+    // ================================
+    
+    // Đồng bộ tất cả lịch làm việc lên Google Calendar
+    async function dong_bo_tat_ca_google() {
+        try {
+            // Kiểm tra kết nối Google Calendar
+            if (!window.googleCalendarManager?.kiem_tra_ket_noi()) {
+                hien_thi_thong_bao('Vui lòng kết nối Google Calendar trước!', 'error');
+                return;
+            }
+
+            // Lọc các lịch chưa được đồng bộ
+            const lich_chua_dong_bo = danh_sach_lich_lam_global.filter(lich => !lich.google_event_id);
+            
+            if (lich_chua_dong_bo.length === 0) {
+                hien_thi_thong_bao('Tất cả lịch đã được đồng bộ!', 'info');
+                return;
+            }
+
+            if (!confirm(`Đồng bộ ${lich_chua_dong_bo.length} lịch làm việc lên Google Calendar?`)) {
+                return;
+            }
+
+            let thanh_cong = 0;
+            let that_bai = 0;
+            const errors = [];
+
+            for (const lich of lich_chua_dong_bo) {
+                try {
+                    // Tạo sự kiện Google Calendar
+                    await tao_su_kien_google_tu_lich(lich.id);
+                    thanh_cong++;
+                    
+                    // Thêm delay nhỏ để tránh rate limit
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    
+                } catch (error) {
+                    that_bai++;
+                    const errorMsg = `Lịch ${lich.id}: ${error.message}`;
+                    errors.push(errorMsg);
+                    console.error(`❌ Lỗi đồng bộ lịch ${lich.id}:`, error);
+                }
+            }
+
+            // Hiển thị kết quả
+            let message = `Đồng bộ hoàn tất: ${thanh_cong} thành công, ${that_bai} thất bại`;
+            if (errors.length > 0) {
+                }
+            
+            const type = thanh_cong > 0 ? (that_bai > 0 ? 'warning' : 'success') : 'error';
+            hien_thi_thong_bao(message, type);
+            
+            // Refresh danh sách để cập nhật trạng thái đồng bộ
+            await tai_danh_sach_lich_lam();
+            
+        } catch (error) {
+            console.error('❌ Lỗi đồng bộ batch:', error);
+            hien_thi_thong_bao(`Lỗi đồng bộ: ${error.message}`, 'error');
+        }
+    }
+
+    // Tạo sự kiện Google Calendar từ lịch làm việc
+    async function tao_su_kien_google_tu_lich(lich_id) {
+        try {
+            if (!window.googleCalendarManager?.kiem_tra_ket_noi()) {
+                throw new Error('Chưa kết nối Google Calendar');
+            }
+
+            const lich = danh_sach_lich_lam_global.find(l => l.id === lich_id);
+            if (!lich) {
+                throw new Error('Không tìm thấy lịch làm việc');
+            }
+
+            const cong_viec = danh_sach_cong_viec_global.find(cv => cv.id === lich.cong_viec_id);
+            if (!cong_viec) {
+                throw new Error('Không tìm thấy thông tin công việc');
+            }
+
+            // Chuẩn bị dữ liệu để tạo sự kiện Google
+            const thong_tin_lich = {
+                ten_cong_viec: cong_viec.ten_cong_viec,
+                ngay_lam: lich.ngay_lam,
+                gio_bat_dau: lich.gio_bat_dau,
+                gio_ket_thuc: lich.gio_ket_thuc,
+                dia_diem: lich.dia_diem || cong_viec.dia_diem_mac_dinh || '',
+                ghi_chu: lich.ghi_chu || `Lịch làm việc: ${cong_viec.ten_cong_viec}`,
+                mau_sac: cong_viec.mau_sac || '#ffc107'
+            };
+
+            // Tạo sự kiện trên Google Calendar
+            const ket_qua = await window.googleCalendarManager.tao_event(thong_tin_lich);
+            
+            if (ket_qua.thanh_cong) {
+                // Cập nhật lịch làm việc với Google Event ID
+                await cap_nhat_lich_lam_voi_google_id(lich_id, ket_qua.google_event_id);
+                } else {
+                throw new Error(ket_qua.loi || 'Không thể tạo sự kiện Google');
+            }
+
+        } catch (error) {
+            console.error(`❌ Lỗi tạo sự kiện Google cho lịch ${lich_id}:`, error);
+            throw error;
+        }
+    }
+
+    // Cập nhật lịch làm việc với Google Event ID
+    async function cap_nhat_lich_lam_voi_google_id(lich_id, google_event_id) {
+        try {
+            const response = await fetch(`/api/lich-lam/${lich_id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    google_event_id: google_event_id,
+                    dong_bo_google: true
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            if (result.thanh_cong) {
+                // Cập nhật dữ liệu local
+                const lich_index = danh_sach_lich_lam_global.findIndex(l => l.id === lich_id);
+                if (lich_index !== -1) {
+                    danh_sach_lich_lam_global[lich_index].google_event_id = google_event_id;
+                    danh_sach_lich_lam_global[lich_index].dong_bo_google = true;
+                }
+                } else {
+                throw new Error(result.loi || 'Cập nhật thất bại');
+            }
+
+        } catch (error) {
+            console.error('❌ Lỗi cập nhật Google Event ID:', error);
+            throw error;
+        }
+    }
+
+    // ================================
+    // FUNCTIONS CHO TAB THỐNG KÊ
+    // ================================
+    
+    // Khởi tạo dropdown tháng và năm cho thống kê
+    function khoi_tao_select_thang() {
+        // Khởi tạo dropdown tháng
+        const selectThang = document.getElementById('chon-thang-thong-ke');
+        if (selectThang) {
+            const thang_hien_tai = new Date().getMonth() + 1;
+            selectThang.innerHTML = '';
+            
+            // Tạo options cho 12 tháng
+            for (let thang = 1; thang <= 12; thang++) {
+                const option = document.createElement('option');
+                option.value = thang;
+                option.textContent = `Tháng ${thang}`;
+                if (thang === thang_hien_tai) option.selected = true;
+                selectThang.appendChild(option);
+            }
+            
+            }
+        
+        // Khởi tạo dropdown năm
+        const selectNam = document.getElementById('chon-nam-thong-ke');
+        if (selectNam) {
+            const nam_hien_tai = new Date().getFullYear();
+            const nam_bat_dau = 2020;
+            selectNam.innerHTML = '';
+            
+            // Tạo options cho các năm
+            for (let nam = nam_hien_tai; nam >= nam_bat_dau; nam--) {
+                const option = document.createElement('option');
+                option.value = nam;
+                option.textContent = nam;
+                if (nam === nam_hien_tai) option.selected = true;
+                selectNam.appendChild(option);
+            }
+            
+            }
+    }
+    
+    // Tải thống kê theo tháng và năm - SỬ DỤNG API BACKEND
+    async function tai_thong_ke_thang() {
+        try {
+            // Đảm bảo tab thống kê hoạt động
+            const tabReady = dam_bao_tab_thong_ke_hoat_dong();
+            if (!tabReady) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            const thang_chon = document.getElementById('chon-thang-thong-ke')?.value;
+            const nam_chon = document.getElementById('chon-nam-thong-ke')?.value;
+            
+            if (!nam_chon) {
+                hien_thi_thong_bao('Vui lòng chọn năm để xem thống kê', 'warning');
+                return;
+            }
+            
+            // Hiển thị loading
+            hien_thi_loading_thong_ke(true);
+            
+            // Gọi API backend
+            let url = `/api/thong-ke-luong?nam=${nam_chon}`;
+            if (thang_chon) {
+                url += `&thang=${thang_chon}`;
+            }
+            
+            const response = await fetch(url);
+            const result = await response.json();
+            
+            if (!result.thanh_cong) {
+                throw new Error(result.loi || 'Lỗi không xác định');
+            }
+            
+            // Cập nhật giao diện với dữ liệu từ API
+            cap_nhat_giao_dien_thong_ke_tu_api(result.du_lieu, thang_chon, nam_chon);
+            
+            // QUAN TRỌNG: Ẩn loading SAU KHI đã cập nhật data
+            hien_thi_loading_thong_ke(false);
+            
+            // Double-check: Đảm bảo không còn spinner nào
+            setTimeout(() => {
+                const remainingSpinners = document.querySelectorAll('#thong-ke .spinner-border');
+                if (remainingSpinners.length > 0) {
+                    remainingSpinners.forEach(s => s.remove());
+                }
+                }, 100);
+            
+            const time_range = thang_chon ? `tháng ${thang_chon}/${nam_chon}` : `năm ${nam_chon}`;
+            hien_thi_thong_bao(`Đã tải thống kê ${time_range} (${result.tong_records} ca làm việc)`, 'success');
+            
+        } catch (error) {
+            console.error('❌ Lỗi tải thống kê:', error);
+            hien_thi_thong_bao('Lỗi tải thống kê: ' + error.message, 'error');
+            hien_thi_loading_thong_ke(false);
+        }
+    }
+    
+    // Khởi tạo các bộ lọc cho container lịch làm việc
+    function khoi_tao_cac_bo_loc_element() {
+        // Khởi tạo select công việc
+        if (danh_sach_cong_viec_global && danh_sach_cong_viec_global.length > 0) {
+            cap_nhat_select_cong_viec(danh_sach_cong_viec_global);
+        }
+        
+        // Đặt giá trị mặc định cho các input date
+        const today = new Date();
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        
+        const locTuNgay = document.getElementById('loc-tu-ngay');
+        const locDenNgay = document.getElementById('loc-den-ngay');
+        
+        if (locTuNgay && !locTuNgay.value) {
+            locTuNgay.value = dinh_dang_ngay_local(firstDayOfMonth);
+        }
+        if (locDenNgay && !locDenNgay.value) {
+            locDenNgay.value = dinh_dang_ngay_local(lastDayOfMonth);
+        }
+        
+        // Gọi hàm khởi tạo bộ lọc để thêm event listeners
+        khoi_tao_bo_loc_lich();
+    }
+    
+    // Hiển thị phần tổng hợp lương ở tab thống kê
+    function hien_thi_tong_hop_luong_container() {
+        const container = document.getElementById('tong-hop-luong-lich-container');
+        if (container) {
+            container.style.display = 'block';
+            } else {
+            console.warn('⚠️ Không tìm thấy container tổng hợp lương');
+        }
+    }
+    
+    // Ẩn phần tổng hợp lương (dùng khi cần thiết)
+    function an_tong_hop_luong_container() {
+        const container = document.getElementById('tong-hop-luong-lich-container');
+        if (container) {
+            container.style.display = 'none';
+            }
+    }
+    
+    // Hiển thị/ẩn loading cho thống kê - SỬA LỖI TRIỆT ĐỂ
+    function hien_thi_loading_thong_ke(show) {
+        console.log(`🔄 hien_thi_loading_thong_ke(${show})`);
+        
+        if (show) {
+            // Hiển thị loading
+            const cards = document.querySelectorAll('#thong-ke .card-body');
+            cards.forEach((card, index) => {
+                card.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Đang tải...</div>';
+            });
+        } else {
+            // ẨN loading - QUAN TRỌNG: XÓA TẤT CẢ SPINNERS
+            // Tìm và xóa tất cả spinners trong tab thống kê
+            const spinners = document.querySelectorAll('#thong-ke .spinner-border');
+            spinners.forEach((spinner, index) => {
+                const cardBody = spinner.closest('.card-body');
+                if (cardBody) {
+                    // Xóa toàn bộ nội dung loading trong card-body này
+                    const loadingDiv = cardBody.querySelector('.text-center');
+                    if (loadingDiv && loadingDiv.innerHTML.includes('spinner-border')) {
+                        cardBody.removeChild(loadingDiv);
+                    }
+                }
+            });
+            
+            // Đảm bảo không còn loading text nào
+            const loadingTexts = document.querySelectorAll('#thong-ke .text-center');
+            loadingTexts.forEach(textEl => {
+                if (textEl.textContent.includes('Đang tải') || textEl.innerHTML.includes('spinner-border')) {
+                    textEl.remove();
+                }
+            });
+            
+            }
+    }
+    
+    // Force tạo lại tab thống kê nếu elements bị thiếu
+    async function force_tao_lai_tab_thong_ke() {
+        const tabPane = document.getElementById('thong-ke');
+        if (!tabPane) {
+            return;
+        }
+        
+        // Kiểm tra xem có cần tạo lại không
+        const existingCards = tabPane.querySelectorAll('[id^="tk-"]');
+        if (existingCards.length >= 6) {
+            return;
+        }
+        
+        // Tạo HTML cho thống kê tổng quan
+        const thongKeHTML = `
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
+                <h5 class="mb-0 mb-md-0"><i class="fas fa-chart-bar me-2"></i>Thống Kê Lương Dự Tính</h5>
+                <div class="d-flex gap-1 gap-md-2 align-items-center flex-wrap">
+                    <small class="text-muted me-2 d-none d-md-inline">Lọc theo:</small>
+                    <select class="form-select form-select-sm" id="chon-thang-thong-ke" onchange="tai_thong_ke_thang()" style="min-width: 90px;">
+                        <!-- Sẽ được tạo bằng JavaScript -->
+                    </select>
+                    <select class="form-select form-select-sm" id="chon-nam-thong-ke" onchange="tai_thong_ke_thang()" style="min-width: 70px;">
+                        <!-- Sẽ được tạo bằng JavaScript -->
+                    </select>
+                    <button class="btn btn-outline-primary btn-sm" onclick="tai_thong_ke_thang()" title="Làm mới dữ liệu">
+                        <i class="fas fa-sync-alt me-1"></i>Làm mới
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="test_api_debug()" title="Test API Debug">
+                        <i class="fas fa-bug me-1"></i>Debug
+                    </button>
+                </div>
+            </div>
+
+            <!-- Thống kê tổng quan -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Tổng công việc</h6>
+                                    <h4 id="tk-tong-cong-viec">0</h4>
+                                </div>
+                                <i class="fas fa-briefcase fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Tổng lịch làm</h6>
+                                    <h4 id="tk-tong-lich-lam">0</h4>
+                                </div>
+                                <i class="fas fa-calendar-check fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Tổng giờ làm việc</h6>
+                                    <h4 id="tk-gio-lam-viec">0h</h4>
+                                </div>
+                                <i class="fas fa-clock fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Lương dự tính</h6>
+                                    <h4 id="tk-luong-du-tinh">0đ</h4>
+                                </div>
+                                <i class="fas fa-money-bill-wave fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thống kê đồng bộ Google Calendar -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Đã đồng bộ Google</h6>
+                                    <h4 id="tk-dong-bo-thanh-cong">0</h4>
+                                </div>
+                                <i class="fab fa-google fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title">Chưa đồng bộ</h6>
+                                    <h4 id="tk-dong-bo-chua-dong-bo">0</h4>
+                                </div>
+                                <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng thống kê chi tiết -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-table me-2"></i>Chi Tiết Theo Công Việc
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                                <table class="table table-striped" style="min-width: 500px;">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th style="min-width: 120px;">Công việc</th>
+                                            <th class="text-center" style="min-width: 80px;">Số ca</th>
+                                            <th class="text-center" style="min-width: 90px;">Tổng giờ</th>
+                                            <th class="text-end" style="min-width: 100px;">Tổng lương</th>
+                                            <th class="text-end" style="min-width: 90px;">TB/ca</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bang-thong-ke-cong-viec">
+                                        <tr><td colspan="5" class="text-center text-muted">Đang tải...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-calendar-day me-2"></i>Chi Tiết Theo Ngày
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                                <table class="table table-striped" style="min-width: 400px;">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th style="min-width: 120px;">Ngày</th>
+                                            <th class="text-center" style="min-width: 80px;">Số ca</th>
+                                            <th class="text-center" style="min-width: 90px;">Tổng giờ</th>
+                                            <th class="text-end" style="min-width: 100px;">Tổng lương</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bang-thong-ke-theo-ngay">
+                                        <tr><td colspan="4" class="text-center text-muted">Đang tải...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Thay thế nội dung tab
+        tabPane.innerHTML = thongKeHTML;
+        
+        // Khởi tạo lại các select
+        khoi_tao_select_thang();
+        
+        // Verify
+        const newCards = tabPane.querySelectorAll('[id^="tk-"]');
+        newCards.forEach(el => {
+            });
+    }
+
+    // Helper function để định dạng tiền
+    function dinh_dang_tien(so_tien) {
+        if (typeof so_tien !== 'number') {
+            so_tien = parseFloat(so_tien) || 0;
+        }
+        return dinh_dang_tien_te(so_tien);
+    }
+    
+    // Cập nhật giao diện thống kê từ dữ liệu API
+    function cap_nhat_giao_dien_thong_ke_tu_api(thong_ke, thang, nam) {
+        try {
+            // Cập nhật các card tổng quan
+            const luong_trung_binh_ca = thong_ke.tong_ca > 0 ? thong_ke.tong_luong / thong_ke.tong_ca : 0;
+            const elements = {
+                'tk-tong-cong-viec': Object.keys(thong_ke.theo_cong_viec).length,
+                'tk-tong-lich-lam': thong_ke.tong_ca,
+                'tk-gio-lam-viec': `${thong_ke.tong_gio.toFixed(1)}h`,
+                'tk-luong-du-tinh': dinh_dang_tien(thong_ke.tong_luong)
+            };
+            
+            Object.entries(elements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                    } else {
+                    console.warn(`❌ Element not found: ${id}`);
+                }
+            });
+            
+            // Hiển thị các bảng chi tiết
+            hien_thi_bang_chi_tiet_cong_viec_tu_api(thong_ke.theo_cong_viec, thang, nam);
+            hien_thi_bang_chi_tiet_theo_ngay_tu_api(thong_ke.theo_ngay, thang, nam);
+            hien_thi_thong_ke_dong_bo_google(thong_ke.dong_bo_google);
+            
+            console.log(`✅ Hoàn thành cập nhật: ${thong_ke.tong_ca} ca - ${thong_ke.tong_gio.toFixed(1)}h - ${dinh_dang_tien(thong_ke.tong_luong)} (TB: ${dinh_dang_tien(luong_trung_binh_ca)}/ca)`);
+            
+        } catch (error) {
+            console.error('❌ Lỗi cập nhật giao diện:', error);
+        }
+    }
+    
+    // Cập nhật thống kê công việc theo tháng và năm - PHIÊN BẢN CẢI TIẾN
+    function cap_nhat_thong_ke_cong_viec_theo_thang_nam(thang, nam) {
+        // Đảm bảo có dữ liệu
+        if (!danh_sach_lich_lam_global || !danh_sach_cong_viec_global) {
+            console.warn('⚠️ Chưa có dữ liệu để tính thống kê');
+            return;
+        }
+        
+        // Lọc lịch làm việc theo tháng và năm
+        const lich_thang = danh_sach_lich_lam_global.filter(lich => {
+            if (!lich.ngay_lam) return false;
+            const [nam_lich, thang_lich] = lich.ngay_lam.split('-');
+            return parseInt(thang_lich) === parseInt(thang) && parseInt(nam_lich) === parseInt(nam);
+        });
+        
+        // Tính toán chi tiết
+        let tong_ca = 0;
+        let tong_gio = 0;
+        let tong_luong = 0;
+        let thong_ke_theo_cong_viec = {};
+        let thong_ke_theo_ngay = {};
+        
+        lich_thang.forEach(lich => {
+            // Tìm thông tin công việc
+            const cong_viec = danh_sach_cong_viec_global.find(cv => cv.id === lich.cong_viec_id);
+            if (!cong_viec) {
+                console.warn(`⚠️ Không tìm thấy công việc ID ${lich.cong_viec_id}`);
+                return;
+            }
+            
+            // Tính giờ làm việc
+            const gio_lam = tinh_gio_lam_viec(lich.gio_bat_dau, lich.gio_ket_thuc);
+            const luong_ca = gio_lam * (cong_viec.luong_gio || 0);
+            
+            // Cộng dồn tổng
+            tong_ca++;
+            tong_gio += gio_lam;
+            tong_luong += luong_ca;
+            
+            // Thống kê theo công việc
+            if (!thong_ke_theo_cong_viec[cong_viec.id]) {
+                thong_ke_theo_cong_viec[cong_viec.id] = {
+                    ten: cong_viec.ten_cong_viec,
+                    luong_gio: cong_viec.luong_gio,
+                    so_ca: 0,
+                    tong_gio: 0,
+                    tong_luong: 0,
+                    mau_sac: cong_viec.mau_sac
+                };
+            }
+            
+            thong_ke_theo_cong_viec[cong_viec.id].so_ca++;
+            thong_ke_theo_cong_viec[cong_viec.id].tong_gio += gio_lam;
+            thong_ke_theo_cong_viec[cong_viec.id].tong_luong += luong_ca;
+            
+            // Thống kê theo ngày
+            const ngay = lich.ngay_lam;
+            if (!thong_ke_theo_ngay[ngay]) {
+                thong_ke_theo_ngay[ngay] = {
+                    ngay: ngay,
+                    so_ca: 0,
+                    tong_gio: 0,
+                    tong_luong: 0,
+                    chi_tiet: []
+                };
+            }
+            
+            thong_ke_theo_ngay[ngay].so_ca++;
+            thong_ke_theo_ngay[ngay].tong_gio += gio_lam;
+            thong_ke_theo_ngay[ngay].tong_luong += luong_ca;
+            thong_ke_theo_ngay[ngay].chi_tiet.push({
+                cong_viec: cong_viec.ten_cong_viec,
+                gio_bat_dau: lich.gio_bat_dau,
+                gio_ket_thuc: lich.gio_ket_thuc,
+                gio_lam: gio_lam,
+                luong: luong_ca,
+                mau_sac: cong_viec.mau_sac
+            });
+        });
+        
+        // Cập nhật giao diện các card
+        const luong_trung_binh_ca = tong_ca > 0 ? tong_luong / tong_ca : 0;
+        const elements = {
+            'tk-tong-cong-viec': danh_sach_cong_viec_global.length,
+            'tk-tong-lich-lam': tong_ca,
+            'tk-gio-lam-viec': `${tong_gio.toFixed(1)}h`,
+            'tk-luong-du-tinh': dinh_dang_tien(tong_luong)
+        };
+        
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+        
+        // Hiển thị các bảng chi tiết
+        hien_thi_bang_chi_tiet_cong_viec(thong_ke_theo_cong_viec, thang, nam);
+        hien_thi_bang_chi_tiet_theo_ngay(thong_ke_theo_ngay, thang, nam);
+        
+        console.log(`✅ Tháng ${thang}/${nam}: ${tong_ca} ca - ${tong_gio.toFixed(1)}h - ${dinh_dang_tien(tong_luong)} (TB: ${dinh_dang_tien(luong_trung_binh_ca)}/ca)`);
+    }
+    
+    // Hàm tính giờ làm việc từ chuỗi thời gian
+    function tinh_gio_lam_viec(gio_bat_dau, gio_ket_thuc) {
+        if (!gio_bat_dau || !gio_ket_thuc) return 0;
+        
+        try {
+            const [gio1, phut1] = gio_bat_dau.split(':').map(Number);
+            const [gio2, phut2] = gio_ket_thuc.split(':').map(Number);
+            
+            const phut_bat_dau = gio1 * 60 + phut1;
+            const phut_ket_thuc = gio2 * 60 + phut2;
+            
+            let phut_lam = phut_ket_thuc - phut_bat_dau;
+            if (phut_lam < 0) phut_lam += 24 * 60; // Xử lý trường hợp qua ngày
+            
+            return phut_lam / 60; // Trả về số giờ
+        } catch (error) {
+            console.error('Lỗi tính giờ làm việc:', error);
+            return 0;
+        }
+    }
+    
+    // Hiển thị bảng chi tiết theo công việc
+    function hien_thi_bang_chi_tiet_cong_viec(thong_ke, thang, nam) {
+        // Tìm container để hiển thị bảng (sẽ tạo nếu chưa có)
+        let container = document.getElementById('bang-chi-tiet-thong-ke');
+        if (!container) {
+            // Tạo container mới sau các card thống kê
+            const cardRow = document.querySelector('#thong-ke .row.mb-4');
+            if (cardRow) {
+                container = document.createElement('div');
+                container.id = 'bang-chi-tiet-thong-ke';
+                container.className = 'card mt-4';
+                cardRow.insertAdjacentElement('afterend', container);
+            } else {
+                return;
+            }
+        }
+        
+        // Tạo HTML cho bảng
+        let html = `
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-table me-2"></i>
+                    Chi Tiết Lương Theo Công Việc - Tháng ${thang}/${nam}
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Công Việc</th>
+                                <th>Lương/Giờ</th>
+                                <th>Số Ca</th>
+                                <th>Tổng Giờ</th>
+                                <th>Tổng Lương</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        
+        const danh_sach_cv = Object.values(thong_ke);
+        const tong_luong_thang = danh_sach_cv.reduce((sum, cv) => sum + cv.tong_luong, 0);
+        
+        if (danh_sach_cv.length === 0) {
+            html += `
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Không có ca làm việc nào trong tháng này
+                    </td>
+                </tr>
+            `;
+        } else {
+            // Sắp xếp theo tổng lương giảm dần
+            danh_sach_cv.sort((a, b) => b.tong_luong - a.tong_luong);
+            
+            danh_sach_cv.forEach(cv => {
+                const phan_tram = tong_luong_thang > 0 ? ((cv.tong_luong / tong_luong_thang) * 100).toFixed(1) : 0;
+                html += `
+                    <tr>
+                        <td>
+                            <span class="badge" style="background-color: ${cv.mau_sac || '#6c757d'}; color: white;">
+                                ${cv.ten}
+                            </span>
+                        </td>
+                        <td>${dinh_dang_tien(cv.luong_gio)}</td>
+                        <td><strong>${cv.so_ca}</strong> ca</td>
+                        <td>${cv.tong_gio.toFixed(1)}h</td>
+                        <td><strong>${dinh_dang_tien(cv.tong_luong)}</strong></td>
+                        <td>${phan_tram}%</td>
+                    </tr>
+                `;
+            });
+            
+            // Tổng cộng
+            html += `
+                <tr class="table-warning">
+                    <td><strong>TỔNG CỘNG</strong></td>
+                    <td>-</td>
+                    <td><strong>${danh_sach_cv.reduce((sum, cv) => sum + cv.so_ca, 0)}</strong> ca</td>
+                    <td><strong>${danh_sach_cv.reduce((sum, cv) => sum + cv.tong_gio, 0).toFixed(1)}</strong>h</td>
+                    <td><strong>${dinh_dang_tien(tong_luong_thang)}</strong></td>
+                    <td>100%</td>
+                </tr>
+            `;
+        }
+        
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+    }
+    
+    // Hiển thị bảng chi tiết theo ngày
+    function hien_thi_bang_chi_tiet_theo_ngay(thong_ke_theo_ngay, thang, nam) {
+        // Tìm container để hiển thị bảng (sẽ tạo nếu chưa có)
+        let container = document.getElementById('bang-chi-tiet-theo-ngay');
+        if (!container) {
+            // Tạo container mới sau bảng công việc
+            const bangCongViec = document.getElementById('bang-chi-tiet-thong-ke');
+            if (bangCongViec) {
+                container = document.createElement('div');
+                container.id = 'bang-chi-tiet-theo-ngay';
+                container.className = 'card mt-4';
+                bangCongViec.insertAdjacentElement('afterend', container);
+            } else {
+                return;
+            }
+        }
+        
+        // Tạo HTML cho bảng
+        let html = `
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-calendar-day me-2"></i>
+                    Chi Tiết Theo Ngày - Tháng ${thang}/${nam}
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Số Ca</th>
+                                <th>Tổng Giờ</th>
+                                <th>Tổng Lương</th>
+                                <th>Chi Tiết Ca Làm</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        
+        const danh_sach_ngay = Object.values(thong_ke_theo_ngay);
+        
+        if (danh_sach_ngay.length === 0) {
+            html += `
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Không có ca làm việc nào trong tháng này
+                    </td>
+                </tr>
+            `;
+        } else {
+            // Sắp xếp theo ngày
+            danh_sach_ngay.sort((a, b) => new Date(a.ngay) - new Date(b.ngay));
+            
+            danh_sach_ngay.forEach(ngay_data => {
+                const ngay_hien_thi = new Date(ngay_data.ngay).toLocaleDateString('vi-VN', {
+                    weekday: 'short',
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+                
+                const chi_tiet_html = ngay_data.chi_tiet.map(ct => `
+                    <span class="badge me-1 mb-1" style="background-color: ${ct.mau_sac || '#6c757d'}; color: white;" title="${dinh_dang_tien(ct.luong)}">
+                        ${ct.cong_viec} (${ct.gio_bat_dau}-${ct.gio_ket_thuc})
+                    </span>
+                `).join('');
+                
+                html += `
+                    <tr>
+                        <td><strong>${ngay_hien_thi}</strong></td>
+                        <td>${ngay_data.so_ca} ca</td>
+                        <td>${ngay_data.tong_gio.toFixed(1)}h</td>
+                        <td><strong>${dinh_dang_tien(ngay_data.tong_luong)}</strong></td>
+                        <td>${chi_tiet_html}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+    }
+    
+    // Hiển thị bảng chi tiết theo công việc từ API
+    function hien_thi_bang_chi_tiet_cong_viec_tu_api(theo_cong_viec, thang, nam) {
+        const tbody = document.getElementById('bang-thong-ke-cong-viec');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        if (!theo_cong_viec || Object.keys(theo_cong_viec).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Không có dữ liệu</td></tr>';
+            return;
+        }
+        
+        // Sắp xếp theo tổng lương giảm dần
+        const cong_viec_sorted = Object.entries(theo_cong_viec)
+            .sort((a, b) => b[1].tong_luong - a[1].tong_luong);
+        
+        cong_viec_sorted.forEach(([ten_cong_viec, stats]) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${ten_cong_viec}</td>
+                <td class="text-center">${stats.so_ca}</td>
+                <td class="text-center">${stats.tong_gio.toFixed(1)}h</td>
+                <td class="text-end text-success">${dinh_dang_tien(stats.tong_luong)}</td>
+                <td class="text-end text-info">${dinh_dang_tien(stats.luong_trung_binh)}/ca</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    // Hiển thị bảng chi tiết theo ngày từ API
+    function hien_thi_bang_chi_tiet_theo_ngay_tu_api(theo_ngay, thang, nam) {
+        const tbody = document.getElementById('bang-thong-ke-theo-ngay');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        if (!theo_ngay || theo_ngay.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Không có dữ liệu</td></tr>';
+            return;
+        }
+        
+        // Sắp xếp theo ngày giảm dần
+        const ngay_sorted = theo_ngay.sort((a, b) => new Date(b.ngay) - new Date(a.ngay));
+        
+        ngay_sorted.forEach(item => {
+            const ngay_hien_thi = new Date(item.ngay).toLocaleDateString('vi-VN');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${ngay_hien_thi}</td>
+                <td class="text-center">${item.so_ca}</td>
+                <td class="text-center">${item.tong_gio.toFixed(1)}h</td>
+                <td class="text-end text-success">${dinh_dang_tien(item.tong_luong)}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    // Force tạo elements thống kê trực tiếp vào DOM
+    async function force_tao_elements_thong_ke_truc_tiep() {
+        const tabPane = document.getElementById('thong-ke');
+        if (!tabPane) {
+            return;
+        }
+        
+        // Tìm hoặc tạo container cho các cards
+        let cardsContainer = tabPane.querySelector('.row.mb-4');
+        if (!cardsContainer) {
+            cardsContainer = document.createElement('div');
+            cardsContainer.className = 'row mb-4';
+            tabPane.appendChild(cardsContainer);
+        }
+        
+        // Tạo từng card với element cần thiết
+        const cardConfigs = [
+            { id: 'tk-tong-cong-viec', title: 'Tổng công việc', color: 'bg-primary', icon: 'fa-briefcase' },
+            { id: 'tk-tong-lich-lam', title: 'Tổng lịch làm', color: 'bg-success', icon: 'fa-calendar-check' },
+            { id: 'tk-gio-lam-viec', title: 'Tổng giờ làm việc', color: 'bg-warning text-dark', icon: 'fa-clock' },
+            { id: 'tk-luong-du-tinh', title: 'Lương dự tính', color: 'bg-info', icon: 'fa-money-bill-wave' }
+        ];
+        
+        cardConfigs.forEach(config => {
+            const existingElement = document.getElementById(config.id);
+            if (!existingElement) {
+                const cardHtml = `
+                    <div class="col-md-3">
+                        <div class="card ${config.color} text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="card-title">${config.title}</h6>
+                                        <h4 id="${config.id}">0</h4>
+                                    </div>
+                                    <i class="fas ${config.icon} fa-2x opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                cardsContainer.insertAdjacentHTML('beforeend', cardHtml);
+            }
+        });
+        
+        // Tạo row cho Google Calendar stats
+        let googleRow = tabPane.querySelector('.row.mb-4:nth-child(2)');
+        if (!googleRow) {
+            googleRow = document.createElement('div');
+            googleRow.className = 'row mb-4';
+            cardsContainer.insertAdjacentElement('afterend', googleRow);
+            
+            const googleCards = [
+                { id: 'tk-dong-bo-thanh-cong', title: 'Đã đồng bộ Google', color: 'bg-success', icon: 'fab fa-google' },
+                { id: 'tk-dong-bo-chua-dong-bo', title: 'Chưa đồng bộ', color: 'bg-warning text-dark', icon: 'fa-exclamation-triangle' }
+            ];
+            
+            googleCards.forEach(config => {
+                const existingElement = document.getElementById(config.id);
+                if (!existingElement) {
+                    const cardHtml = `
+                        <div class="col-md-6">
+                            <div class="card ${config.color} text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="card-title">${config.title}</h6>
+                                            <h4 id="${config.id}">0</h4>
+                                        </div>
+                                        <i class="fas ${config.icon} fa-2x opacity-75"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    googleRow.insertAdjacentHTML('beforeend', cardHtml);
+                }
+            });
+        }
+        
+        // Verify
+        const allIds = ['tk-tong-cong-viec', 'tk-tong-lich-lam', 'tk-gio-lam-viec', 'tk-luong-du-tinh', 'tk-dong-bo-thanh-cong', 'tk-dong-bo-chua-dong-bo'];
+        allIds.forEach(id => {
+            const el = document.getElementById(id);
+            });
+    }
+    
+    // Hiển thị thống kê đồng bộ Google
+    function hien_thi_thong_ke_dong_bo_google(dong_bo_google) {
+        const elements = {
+            'tk-dong-bo-thanh-cong': dong_bo_google.thanh_cong,
+            'tk-dong-bo-chua-dong-bo': dong_bo_google.chua_dong_bo
+        };
+        
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+    }
+    
+    // Force refresh tab thống kê - XÓA HẾT VÀ TẠI LẠI
+    function force_refresh_tab_thong_ke() {
+        const tabPane = document.getElementById('thong-ke');
+        if (!tabPane) {
+            return;
+        }
+        
+        // Xóa tất cả spinners trước
+        const allSpinners = tabPane.querySelectorAll('.spinner-border');
+        allSpinners.forEach(s => s.remove());
+        
+        // Xóa tất cả loading text
+        const loadingTexts = tabPane.querySelectorAll('.text-center');
+        loadingTexts.forEach(textEl => {
+            if (textEl.textContent.includes('Đang tải')) {
+                textEl.remove();
+            }
+        });
+        
+        // Đảm bảo tất cả elements hiển thị data thực
+        const requiredElements = [
+            'tk-tong-cong-viec',
+            'tk-tong-lich-lam', 
+            'tk-gio-lam-viec',
+            'tk-luong-du-tinh',
+            'tk-dong-bo-thanh-cong',
+            'tk-dong-bo-chua-dong-bo'
+        ];
+        
+        requiredElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                // Nếu element có spinner hoặc loading text, reset về 0
+                if (el.innerHTML.includes('spinner') || el.textContent.includes('Đang tải')) {
+                    el.textContent = '0';
+                }
+                }
+        });
+        
+        }
+    
+    // Đảm bảo tab thống kê hoạt động
+    function dam_bao_tab_thong_ke_hoat_dong() {
+        const tabPane = document.getElementById('thong-ke');
+        if (!tabPane) {
+            return false;
+        }
+        
+        // Kiểm tra các elements quan trọng
+        const requiredElements = [
+            'tk-tong-cong-viec',
+            'tk-tong-lich-lam', 
+            'tk-gio-lam-viec',
+            'tk-luong-du-tinh'
+        ];
+        
+        let missingCount = 0;
+        requiredElements.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) {
+                missingCount++;
+                }
+        });
+        
+        if (missingCount > 0) {
+            force_tao_lai_tab_thong_ke();
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Expose functions globally
+    window.khoi_tao_select_thang = khoi_tao_select_thang;
+    window.tai_thong_ke_thang = tai_thong_ke_thang;
+    window.test_api_debug = test_api_debug;
+    window.force_tao_lai_tab_thong_ke = force_tao_lai_tab_thong_ke;
+    window.dam_bao_tab_thong_ke_hoat_dong = dam_bao_tab_thong_ke_hoat_dong;
+    window.force_refresh_tab_thong_ke = force_refresh_tab_thong_ke;
+    
+    // Expose filter functions globally
+    window.ap_dung_bo_loc_lich = ap_dung_bo_loc_lich;
+    window.reset_bo_loc_lich = reset_bo_loc_lich;
+    window.khoi_tao_bo_loc_lich = khoi_tao_bo_loc_lich;
+    
+    // Auto load thống kê khi vào tab thống kê
+    document.addEventListener('DOMContentLoaded', function() {
+        // Khởi tạo select
+        khoi_tao_select_thang();
+        
+        // Lắng nghe sự kiện chuyển tab
+        const tabThongKe = document.querySelector('button[data-bs-target="#thong-ke"]');
+        if (tabThongKe) {
+            tabThongKe.addEventListener('shown.bs.tab', function () {
+                setTimeout(() => {
+                    tai_thong_ke_thang();
+                }, 500);
+            });
+        }
+        
+        // Kiểm tra nếu tab thống kê đang active ngay từ đầu
+        setTimeout(() => {
+            const tabPane = document.getElementById('thong-ke');
+            if (tabPane && tabPane.classList.contains('active', 'show')) {
+                tai_thong_ke_thang();
+            }
+        }, 1000);
+    });
+    
+    // ================================
+    // CHẨN ĐOÁN
+    // ================================
+    </script>
+
+<style>
+    /* Styles cho tabs */
+    .nav-tabs .nav-link {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #ffc107;
+        border-color: #dee2e6 #dee2e6 #fff;
+        border-bottom: 2px solid #ffc107;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: #e0a800;
+        border-color: #e9ecef #e9ecef #dee2e6;
+    }
+
+    /* Styles cho cards */
+    .card {
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    /* Styles cho badges */
+    .badge {
+        font-weight: 500;
+    }
+
+    /* Chart container */
+    #chart-thu-nhap, #chart-gio-lam {
+        height: 300px !important;
+    }
+
+    /* Google Calendar status */
+    #trang-thai-google {
+        padding: 1rem;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .nav-tabs .nav-link span {
+            display: none;
+        }
+        
+        .nav-tabs .nav-link i {
+            font-size: 1.2rem;
+        }
+        
+        .card-body .btn {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+    }
+</style>
+
+<script>
+    // Function hiển thị màu Google Calendar tương ứng
+    function hien_thi_mau_google_calendar(hex_color, preview_element_id) {
+        if (!window.googleCalendarManager) return;
+        
+        // Sử dụng function tim_mau_gan_nhat từ googleCalendarManager
+        const closest = window.googleCalendarManager.tim_mau_gan_nhat(hex_color);
+        const preview_element = document.getElementById(preview_element_id);
+        
+        if (preview_element && closest) {
+            preview_element.style.backgroundColor = closest.info.hex;
+            preview_element.textContent = closest.info.name;
+            
+            if (hex_color.toLowerCase() !== closest.info.hex.toLowerCase()) {
+                preview_element.title = `Màu gốc: ${hex_color} → Màu Google: ${closest.info.hex}`;
+            } else {
+                preview_element.title = `Màu chính xác: ${closest.info.name}`;
+            }
+        }
+    }
+    
+    // Khởi tạo preview màu khi trang load
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            const mauSacInput = document.getElementById('mau-sac');
+            if (mauSacInput) {
+                hien_thi_mau_google_calendar(mauSacInput.value, 'google-color-preview');
+            }
+        }, 1000);
+    });
+</script>
+</div> <!-- Đóng tab-content -->
+</div> <!-- Đóng container-fluid -->
+{% endblock %}

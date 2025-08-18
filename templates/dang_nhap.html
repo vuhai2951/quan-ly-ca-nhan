@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập - Quản Lý Cá Nhân</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 420px;
+            margin: 20px;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-container img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .app-title {
+            color: #333;
+            font-weight: 700;
+            margin-top: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .app-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+        
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-floating input {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-floating input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 0.75rem 1.5rem !important;
+            font-weight: 600 !important;
+            font-size: 1rem !important;
+            transition: all 0.3s ease !important;
+            width: 100% !important;
+            min-height: 48px !important;
+            color: white !important;
+            text-decoration: none !important;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4) !important;
+            color: white !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+        
+        .btn-login:focus,
+        .btn-login:active {
+            color: white !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+        
+        /* Mobile specific styles */
+        @media (max-width: 768px) {
+            .btn-login {
+                font-size: 16px !important;
+                min-height: 52px !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                -webkit-tap-highlight-color: rgba(102, 126, 234, 0.3) !important;
+                font-weight: 600 !important;
+                /* iOS specific fixes */
+                -webkit-user-select: none !important;
+                -webkit-touch-callout: none !important;
+                /* Đảm bảo button hoạt động tốt trên iOS */
+                cursor: pointer !important;
+                user-select: none !important;
+                /* Fix text rendering issues */
+                text-rendering: optimizeLegibility !important;
+                -webkit-font-smoothing: antialiased !important;
+                -moz-osx-font-smoothing: grayscale !important;
+            }
+            
+            /* Specific fix for iOS Safari */
+            .btn-login:active {
+                background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%) !important;
+                transform: scale(0.98) !important;
+            }
+        }
+        
+        /* Force text visibility - Enhanced for iOS */
+        .btn-login,
+        .btn-login *,
+        .btn-login:hover,
+        .btn-login:focus,
+        .btn-login:active,
+        .btn-login:visited {
+            color: white !important;
+            text-decoration: none !important;
+            /* Prevent text selection issues on iOS */
+            -webkit-user-select: none !important;
+            user-select: none !important;
+        }
+        
+        .btn-login i {
+            color: white !important;
+        }
+        
+        /* Enhanced mobile fixes for iOS Safari */
+        @media (max-width: 768px) {
+            .btn-login .btn-text,
+            .btn-login span:not(.fas):not(.fa):not(.icon) {
+                display: inline !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                /* iOS text rendering fix */
+                -webkit-font-smoothing: antialiased !important;
+                text-rendering: optimizeLegibility !important;
+            }
+            
+            .btn-login {
+                font-size: 16px !important;
+                padding: 14px 20px !important;
+                display: block !important;
+                width: 100% !important;
+                text-align: center !important;
+                line-height: 1.4 !important;
+                /* Better touch target */
+                min-height: 48px !important;
+                /* iOS specific button fixes */
+                border: none !important;
+                outline: none !important;
+                -webkit-appearance: none !important;
+                /* Prevent zoom on focus */
+                transform-origin: center !important;
+            }
+            
+            /* Prevent pseudo-elements from interfering */
+            .btn-login:before,
+            .btn-login:after {
+                content: none !important;
+                display: none !important;
+            }
+            
+            /* iOS Safari specific viewport fixes */
+            .btn-login {
+                /* Prevent button from being cut off */
+                position: relative !important;
+                z-index: 1 !important;
+                /* Better text rendering on Retina displays */
+                backface-visibility: hidden !important;
+                perspective: 1000px !important;
+            }
+        }
+        
+        /* Đảm bảo text luôn hiển thị */
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white !important;
+        }
+        
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        
+        .form-check {
+            margin: 1.5rem 0;
+        }
+        
+        .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        
+        .alert {
+            border-radius: 12px;
+            border: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .password-toggle:hover {
+            color: #495057;
+        }
+        
+        @media (max-width: 576px) {
+            .login-container {
+                padding: 2rem 1.5rem;
+                margin: 10px;
+            }
+            
+            .app-title {
+                font-size: 1.3rem;
+            }
+            
+            /* Đảm bảo text nút đăng nhập hiển thị trên mobile */
+            .btn-login {
+                font-size: 1rem;
+                padding: 0.875rem 1.5rem;
+                font-weight: 600;
+            }
+            
+            .btn-login .btn-text {
+                display: inline-block !important;
+            }
+            
+            /* Đảm bảo icon và text đều hiển thị */
+            .btn-login i {
+                margin-right: 8px;
+            }
+            
+            /* Ẩn icon nếu cần để ưu tiên text */
+            @media (max-width: 400px) {
+                .btn-login i {
+                    display: none;
+                }
+            }
+        }
+        
+        /* Animation cho form */
+        .login-container {
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Logo và tiêu đề -->
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='images/logo-vecter.png') }}" alt="Logo" id="app-logo">
+            <h1 class="app-title">Quản Lý Cá Nhân</h1>
+            <p class="app-subtitle">xin chào HAI VU</p>
+        </div>
+
+        <!-- Thông báo lỗi/thành công -->
+        <div id="thong-bao-container"></div>
+
+        <!-- Form đăng nhập -->
+        <form id="form-dang-nhap" novalidate>
+            <!-- Tên đăng nhập -->
+            <div class="form-floating">
+                <input type="text" class="form-control" id="ten-dang-nhap" name="ten_dang_nhap" 
+                       placeholder="Tên đăng nhập" required autocomplete="username">
+                <label for="ten-dang-nhap">
+                    <i class="fas fa-user me-2"></i>Tên đăng nhập
+                </label>
+                <div class="invalid-feedback">
+                    Vui lòng nhập tên đăng nhập
+                </div>
+            </div>
+
+            <!-- Mật khẩu -->
+            <div class="form-floating position-relative">
+                <input type="password" class="form-control" id="mat-khau" name="mat_khau" 
+                       placeholder="Mật khẩu" required autocomplete="current-password">
+                <label for="mat-khau">
+                    <i class="fas fa-lock me-2"></i>Mật khẩu
+                </label>
+                <button type="button" class="password-toggle" onclick="togglePassword()">
+                    <i class="fas fa-eye" id="password-toggle-icon"></i>
+                </button>
+                <div class="invalid-feedback">
+                    Vui lòng nhập mật khẩu
+                </div>
+            </div>
+
+            <!-- Ghi nhớ đăng nhập -->
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="ghi-nho" name="ghi_nho">
+                <label class="form-check-label" for="ghi-nho">
+                    <i class="fas fa-heart me-1 text-danger"></i>Ghi nhớ đăng nhập
+                </label>
+            </div>
+
+            <!-- Nút đăng nhập -->
+            <button type="submit" class="btn btn-primary btn-login" id="btn-dang-nhap">
+                <span class="btn-content">
+                    <i class="fas fa-sign-in-alt me-2"></i>
+                    <span class="btn-text">Đăng Nhập</span>
+                </span>
+            </button>
+        </form>
+
+        <!-- Quên mật khẩu -->
+        <div class="forgot-password">
+            <a href="#" onclick="showForgotPassword()">
+                <i class="fas fa-question-circle me-1"></i>Quên mật khẩu?
+            </a>
+        </div>
+    </div>
+
+    <!-- Modal Quên Mật Khẩu -->
+    <div class="modal fade" id="modal-quen-mat-khau" tabindex="-1" aria-labelledby="modalQuenMatKhauLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalQuenMatKhauLabel">
+                        <i class="fas fa-key me-2"></i>Khôi phục mật khẩu
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-quen-mat-khau" novalidate>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Nhập email của bạn để nhận liên kết khôi phục mật khẩu.
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email-khoi-phuc" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email
+                            </label>
+                            <input type="email" class="form-control" id="email-khoi-phuc" 
+                                   placeholder="Nhập email của bạn" required>
+                            <div class="invalid-feedback">
+                                Vui lòng nhập email hợp lệ
+                            </div>
+                        </div>
+                        
+                        <!-- Câu hỏi bảo mật -->
+                        <div class="mb-3">
+                            <label for="cau-hoi-bao-mat" class="form-label">
+                                <i class="fas fa-shield-alt me-2"></i>Câu hỏi bảo mật
+                            </label>
+                            <select class="form-select" id="cau-hoi-bao-mat" required>
+                                <option value="">Chọn câu hỏi bảo mật</option>
+                                <option value="pet">Tên thú cưng đầu tiên của bạn?</option>
+                                <option value="school">Tên trường tiểu học của bạn?</option>
+                                <option value="city">Thành phố nơi bạn sinh ra?</option>
+                                <option value="mother">Tên họ của mẹ bạn?</option>
+                                <option value="food">Món ăn yêu thích của bạn?</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Vui lòng chọn câu hỏi bảo mật
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="tra-loi-bao-mat" class="form-label">
+                                <i class="fas fa-comment me-2"></i>Câu trả lời
+                            </label>
+                            <input type="text" class="form-control" id="tra-loi-bao-mat" 
+                                   placeholder="Nhập câu trả lời" required>
+                            <div class="invalid-feedback">
+                                Vui lòng nhập câu trả lời
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="guiYeuCauKhoiPhuc()">
+                        <i class="fas fa-paper-plane me-2"></i>Gửi yêu cầu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Xử lý form đăng nhập
+        document.getElementById('form-dang-nhap').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const btnDangNhap = document.getElementById('btn-dang-nhap');
+            const tenDangNhap = document.getElementById('ten-dang-nhap').value.trim();
+            const matKhau = document.getElementById('mat-khau').value;
+            const ghiNho = document.getElementById('ghi-nho').checked;
+            
+            // Validate
+            if (!tenDangNhap || !matKhau) {
+                form.classList.add('was-validated');
+                return;
+            }
+            
+                // Hiển thị loading
+                btnDangNhap.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span class="btn-text">Đang xử lý...</span>';
+                btnDangNhap.disabled = true;            try {
+                const response = await fetch('/api/dang-nhap', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ten_dang_nhap: tenDangNhap,
+                        mat_khau: matKhau,
+                        ghi_nho: ghiNho
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.thanh_cong) {
+                    // Hiển thị thông báo thành công
+                    hienThiThongBao('Đăng nhập thành công! Đang chuyển hướng...', 'success');
+                    
+                    // Chuyển hướng sau 1 giây
+                    setTimeout(() => {
+                        window.location.href = result.redirect_url || '/';
+                    }, 1000);
+                    
+                } else {
+                    hienThiThongBao(result.loi || 'Đăng nhập thất bại', 'danger');
+                }
+                
+            } catch (error) {
+                console.error('Lỗi đăng nhập:', error);
+                hienThiThongBao('Có lỗi xảy ra. Vui lòng thử lại!', 'danger');
+            } finally {
+                // Ẩn loading
+                btnDangNhap.innerHTML = '<span class="btn-content"><i class="fas fa-sign-in-alt me-2"></i><span class="btn-text">Đăng Nhập</span></span>';
+                btnDangNhap.disabled = false;
+            }
+        });
+        
+        // Toggle hiển thị mật khẩu
+        function togglePassword() {
+            const passwordInput = document.getElementById('mat-khau');
+            const toggleIcon = document.getElementById('password-toggle-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+        
+        // Hiển thị thông báo
+        function hienThiThongBao(message, type = 'info') {
+            const container = document.getElementById('thong-bao-container');
+            const alertClass = type === 'success' ? 'alert-success' : 
+                              type === 'danger' ? 'alert-danger' : 
+                              type === 'warning' ? 'alert-warning' : 'alert-info';
+                              
+            const icon = type === 'success' ? 'fa-check-circle' :
+                        type === 'danger' ? 'fa-exclamation-triangle' :
+                        type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            container.innerHTML = `
+                <div class="alert ${alertClass} d-flex align-items-center" role="alert">
+                    <i class="fas ${icon} me-2"></i>
+                    <div>${message}</div>
+                </div>
+            `;
+            
+            // Tự động ẩn sau 5 giây (trừ thành công)
+            if (type !== 'success') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 5000);
+            }
+        }
+        
+        // Xử lý quên mật khẩu
+        function showForgotPassword() {
+            const modal = new bootstrap.Modal(document.getElementById('modal-quen-mat-khau'));
+            modal.show();
+        }
+        
+        // Gửi yêu cầu khôi phục mật khẩu
+        async function guiYeuCauKhoiPhuc() {
+            const form = document.getElementById('form-quen-mat-khau');
+            const email = document.getElementById('email-khoi-phuc').value.trim();
+            const cauHoi = document.getElementById('cau-hoi-bao-mat').value;
+            const traLoi = document.getElementById('tra-loi-bao-mat').value.trim();
+            
+            // Validate form
+            if (!email || !cauHoi || !traLoi) {
+                form.classList.add('was-validated');
+                return;
+            }
+            
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                hienThiThongBao('Email không hợp lệ!', 'danger');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/quen-mat-khau', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        cau_hoi_bao_mat: cauHoi,
+                        tra_loi_bao_mat: traLoi
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.thanh_cong) {
+                    // Đóng modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modal-quen-mat-khau'));
+                    modal.hide();
+                    
+                    // Hiển thị thông báo thành công
+                    hienThiThongBao(result.thong_bao || 'Yêu cầu khôi phục đã được gửi!', 'success');
+                    
+                    // Reset form
+                    form.reset();
+                    form.classList.remove('was-validated');
+                } else {
+                    hienThiThongBao(result.loi || 'Có lỗi xảy ra. Vui lòng thử lại!', 'danger');
+                }
+                
+            } catch (error) {
+                console.error('Lỗi khôi phục mật khẩu:', error);
+                hienThiThongBao('Có lỗi kết nối. Vui lòng thử lại!', 'danger');
+            }
+        }
+        
+        // Xử lý fallback cho logo
+        document.getElementById('app-logo').addEventListener('error', function() {
+            this.style.display = 'none';
+        });
+        
+        // Auto focus vào tên đăng nhập
+        document.getElementById('ten-dang-nhap').focus();
+        
+        // Xử lý Enter để submit form
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                document.getElementById('form-dang-nhap').dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        // Kiểm tra đã đăng nhập chưa
+        window.addEventListener('load', function() {
+            // Nếu đã có session, chuyển hướng về trang chính
+            fetch('/api/kiem-tra-dang-nhap')
+                .then(response => response.json())
+                .then(result => {
+                    if (result.da_dang_nhap) {
+                        window.location.href = '/';
+                    }
+                })
+                .catch(error => {
+                    console.log('Chưa đăng nhập');
+                });
+        });
+    </script>
+</body>
+</html>
