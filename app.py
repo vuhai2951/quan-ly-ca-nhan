@@ -2130,6 +2130,9 @@ def offline():
 # KHỞI ĐỘNG ỨNG DỤNG  
 # ================================
 
+# Export app cho Vercel
+app_handler = app
+
 if __name__ == '__main__':
     print("🚀 Khởi động ứng dụng Quản lý Cá nhân...")
     print("📱 Truy cập: http://localhost:5000")
