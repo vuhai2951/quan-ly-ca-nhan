@@ -112,12 +112,12 @@ class GoogleCalendarManager {
         try {
             // Tải Google API script
             if (!window.gapi) {
-                await this.tai_script('https://apis.google.com/js/api.js', 'gapi');
+                await this.tai_script_dong('https://apis.google.com/js/api.js', 'gapi');
                 }
             
             // Tải Google Identity Services
             if (!window.google?.accounts) {
-                await this.tai_script('https://accounts.google.com/gsi/client', 'google');
+                await this.tai_script_dong('https://accounts.google.com/gsi/client', 'google');
                 }
             
         } catch (error) {
@@ -127,9 +127,9 @@ class GoogleCalendarManager {
     }
 
     /**
-     * Helper function để tải script
+     * Tải script động
      */
-    tai_script(src, globalVar) {
+    tai_script_dong(src, globalVar) {
         return new Promise((resolve, reject) => {
             if (window[globalVar]) {
                 resolve();
@@ -867,7 +867,7 @@ class GoogleCalendarManager {
 window.googleCalendarManager = new GoogleCalendarManager();
 
 // Các hàm helper để sử dụng trong HTML
-window.dang_nhap_google = async function() {
+window.dang_nhap_google_calendar = async function() {
     try {
         // Kiểm tra xem đã khởi tạo chưa
         if (!window.googleCalendarManager.isInitialized && !window.googleCalendarManager.gapi) {
@@ -925,7 +925,7 @@ window.dang_nhap_google = async function() {
     }
 };
 
-window.dang_xuat_google = async function() {
+window.dang_xuat_google_calendar = async function() {
     try {
         await window.googleCalendarManager.dang_xuat();
         hien_thi_thong_bao('Đã ngắt kết nối Google Calendar', 'info');

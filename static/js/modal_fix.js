@@ -12,12 +12,12 @@
     let original_body_width = '';
     let scroll_y = 0;
     
-    // Khởi tạo khi DOM loaded
+    // Khoi tao khi DOM loaded
     document.addEventListener('DOMContentLoaded', function() {
-        setupModalFixes();
+        cai_dat_sua_loi_modal();
     });
     
-    function setupModalFixes() {
+    function cai_dat_sua_loi_modal() {
         console.log('🔧 Setting up modal fixes for mobile...');
         
         // Lắng nghe tất cả các modal
@@ -26,37 +26,37 @@
         modals.forEach(function(modal) {
             // When modal is about to show
             modal.addEventListener('show.bs.modal', function(e) {
-                handleModalShow(e);
+                xu_ly_modal_hien_thi(e);
             });
             
             // When modal is fully shown
             modal.addEventListener('shown.bs.modal', function(e) {
-                handleModalShown(e);
+                xu_ly_modal_da_hien_thi(e);
             });
             
             // When modal is about to hide
             modal.addEventListener('hide.bs.modal', function(e) {
-                handleModalHide(e);
+                xu_ly_modal_an(e);
             });
             
             // When modal is fully hidden
             modal.addEventListener('hidden.bs.modal', function(e) {
-                handleModalHidden(e);
+                xu_ly_modal_da_an(e);
             });
         });
         
         // iOS keyboard fix
-        if (is_ios()) {
-            setupIOSKeyboardFix();
+        if (kiem_tra_ios()) {
+            cai_dat_sua_loi_ban_phim_ios();
         }
         
         console.log('✅ Modal fixes setup complete');
     }
     
-    function handleModalShow(e) {
+    function xu_ly_modal_hien_thi(e) {
         console.log('📱 Modal showing:', e.target.id);
         
-        if (is_mobile()) {
+        if (kiem_tra_mobile()) {
             // Save current scroll position
             scroll_y = window.scrollY;
             
@@ -79,10 +79,10 @@
         }
     }
     
-    function handleModalShown(e) {
+    function xu_ly_modal_da_hien_thi(e) {
         console.log('📱 Modal shown:', e.target.id);
         
-        if (is_mobile()) {
+        if (kiem_tra_mobile()) {
             // Focus vào input đầu tiên nếu có
             const firstInput = e.target.querySelector('.form-control, .form-select');
             if (firstInput && !firstInput.readOnly && !firstInput.disabled) {
@@ -108,15 +108,15 @@
         }
     }
     
-    function handleModalHide(e) {
+    function xu_ly_modal_an(e) {
         console.log('📱 Modal hiding:', e.target.id);
         // Không cần làm gì đặc biệt khi modal bắt đầu hide
     }
     
-    function handleModalHidden(e) {
+    function xu_ly_modal_da_an(e) {
         console.log('📱 Modal hidden:', e.target.id);
         
-        if (is_mobile()) {
+        if (kiem_tra_mobile()) {
             // Remove modal-open class
             document.body.classList.remove('modal-open-fixed');
             
@@ -143,7 +143,7 @@
         }
     }
     
-    function setupIOSKeyboardFix() {
+    function cai_dat_sua_loi_ban_phim_ios() {
         console.log('🍎 Setting up iOS keyboard fixes...');
         
         // Fix cho iOS keyboard
@@ -196,16 +196,16 @@
     }
     
     // Utility functions
-    function is_mobile() {
+    function kiem_tra_mobile() {
         return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
     
-    function is_ios() {
+    function kiem_tra_ios() {
         return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     }
     
     // Fix cho form validation
-    window.showModalValidationError = function(inputId, message) {
+    window.hien_thi_loi_modal = function(inputId, message) {
         const input = document.getElementById(inputId);
         if (input) {
             input.classList.add('is-invalid');
@@ -228,7 +228,7 @@
     };
     
     // Clear validation errors
-    window.clearModalValidationErrors = function(formId) {
+    window.xoa_loi_modal = function(formId) {
         const form = document.getElementById(formId);
         if (form) {
             const inputs = form.querySelectorAll('.form-control, .form-select');
@@ -244,7 +244,7 @@
     };
     
     // Button loading state
-    window.setButtonLoading = function(buttonElement, loading) {
+    window.dat_trang_thai_nut = function(buttonElement, loading) {
         if (loading) {
             buttonElement.classList.add('loading');
             buttonElement.disabled = true;

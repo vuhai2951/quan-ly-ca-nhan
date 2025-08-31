@@ -56,11 +56,14 @@ body {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    overscroll-behavior: none;
+    /* overscroll-behavior: none; - REMOVED: This was blocking scroll on mobile */
     -webkit-overflow-scrolling: touch;
     /* iOS specific improvements */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Ensure scrolling works on mobile */
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 /* Allow text selection for inputs and content areas */
@@ -1995,7 +1998,11 @@ body[data-primary="orange"] {
 .dashboard-container {
     max-width: 100%;
     overflow-x: hidden;
+    overflow-y: visible;
     padding: 0 0.5rem;
+    /* Ensure scrolling works on mobile */
+    -webkit-overflow-scrolling: touch;
+    min-height: auto;
 }
 
 .dashboard-row {

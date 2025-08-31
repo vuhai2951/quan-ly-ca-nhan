@@ -1,8 +1,9 @@
 {
+  "id": "quan-ly-ca-nhan-pwa",
   "name": "Quản Lý Cá Nhân",
   "short_name": "QLCN",
   "description": "Ứng dụng quản lý cá nhân - Thu chi, Học tập, Công việc, Ghi chú",
-  "start_url": "/",
+  "start_url": "/?pwa=true",
   "display": "standalone",
   "display_override": ["standalone", "fullscreen"],
   "background_color": "#ffffff",
@@ -33,7 +34,8 @@
     {
       "src": "/static/images/apple-touch-icon.png",
       "sizes": "180x180",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -87,5 +89,7 @@
     }
   ],
   "categories": ["productivity", "finance", "education", "utilities"],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "protocol_handlers": [],
+  "related_applications": []
 }

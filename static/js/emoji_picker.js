@@ -1,9 +1,9 @@
 /**
- * Emoji Picker cho danh mục chi tiêu
+ * Emoji Picker cho danh muc chi tieu
  */
 
-// Danh sách emoji theo danh mục
-const EMOJI_CATEGORIES = {
+// Danh sach emoji theo danh muc
+const DANH_MUC_EMOJI = {
     'an-uong': {
         title: '🍽️ Ăn uống',
         emojis: ['🍽️', '🍕', '🍔', '🍜', '🍱', '🍙', '🍰', '☕', '🥤', '🍻', '🥘', '🍳', '🥗', '🍎', '🥖']
@@ -55,8 +55,8 @@ function tao_emoji_picker(container_id, selected_emoji_id, hidden_input_id, defa
     `;
 
     // Tạo từng danh mục
-    Object.keys(EMOJI_CATEGORIES).forEach(category_key => {
-        const category = EMOJI_CATEGORIES[category_key];
+    Object.keys(DANH_MUC_EMOJI).forEach(category_key => {
+        const category = DANH_MUC_EMOJI[category_key];
         html += `
             <div class="emoji-category mb-3">
                 <h6 class="small text-muted mb-2">${category.title}</h6>
@@ -68,7 +68,7 @@ function tao_emoji_picker(container_id, selected_emoji_id, hidden_input_id, defa
                 <button type="button" class="emoji-btn btn btn-light border-0 p-2" 
                         data-emoji="${emoji}" 
                         style="width: 40px; height: 40px; font-size: 18px;"
-                        onclick="chon_emoji('${emoji}', '${selected_emoji_id}', '${hidden_input_id}')">
+                        onclick="chon_emoji_danh_muc('${emoji}', '${selected_emoji_id}', '${hidden_input_id}')">
                     ${emoji}
                 </button>
             `;
@@ -96,9 +96,9 @@ function tao_emoji_picker(container_id, selected_emoji_id, hidden_input_id, defa
 }
 
 /**
- * Xử lý khi chọn emoji
+ * Xu ly khi chon emoji
  */
-function chon_emoji(emoji, selected_emoji_id, hidden_input_id) {
+function chon_emoji_danh_muc(emoji, selected_emoji_id, hidden_input_id) {
     // Cập nhật hiển thị
     const selected_element = document.getElementById(selected_emoji_id);
     if (selected_element) {
@@ -128,10 +128,10 @@ function chon_emoji(emoji, selected_emoji_id, hidden_input_id) {
 }
 
 /**
- * Khởi tạo emoji picker khi trang load
+ * Khoi tao emoji picker khi trang load
  */
 document.addEventListener('DOMContentLoaded', function() {
-    // Kiểm tra xem có container emoji picker không
+    // Kiem tra xem co container emoji picker khong
     if (document.getElementById('emoji-picker-chi-container')) {
         tao_emoji_picker('emoji-picker-chi-container', 'emoji-chi-selected', 'emoji-chi');
     }

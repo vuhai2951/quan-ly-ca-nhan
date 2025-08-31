@@ -21,6 +21,33 @@
     vertical-align: middle !important;
 }
 
+/* Ensure mobile scrolling works */
+@media (max-width: 768px) {
+    /* Fix iOS scroll issues */
+    html {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        height: 100%;
+    }
+    
+    body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        min-height: 100vh;
+        height: auto;
+        position: relative;
+    }
+    
+    /* Dashboard container mobile fixes */
+    .dashboard-container {
+        overflow: visible;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
+    }
+}
+
 /* Desktop columns */
 @media (min-width: 768px) {
     .col-date { width: 15% !important; }
@@ -44,6 +71,17 @@
 
 /* Mobile columns */
 @media (max-width: 575px) {
+    /* Ensure page can scroll on mobile */
+    html, body {
+        height: auto !important;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: none;
+        overscroll-behavior-y: auto;
+    }
+    
     .table-responsive-fit th,
     .table-responsive-fit td {
         font-size: 0.7rem !important;
@@ -66,9 +104,12 @@
 
 /* Force no horizontal scroll */
 .table-container {
-    overflow-x: hidden !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
     width: 100% !important;
     max-width: 100% !important;
+    /* Ensure mobile scrolling works */
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Responsive text cho các cột */
@@ -534,10 +575,11 @@
             khoi_tao_dashboard_moi();
         }
         
-        // Set ngày mặc định cho forms
+        // Set ngày mặc định cho các form modal (không áp dụng cho date picker dashboard)
         const hom_nay = new Date().toISOString().split('T')[0];
         document.querySelectorAll('input[type="date"]').forEach(input => {
-            if (!input.value) {
+            // Chỉ set ngày mặc định cho input trong modal forms, không phải date picker dashboard
+            if (!input.value && !input.id.includes('xu-huong') && !input.id.includes('luong')) {
                 input.value = hom_nay;
             }
         });
@@ -802,10 +844,18 @@
                 ngay_bat_dau = new Date(tu_ngay);
                 ngay_ket_thuc = new Date(den_ngay);
             } else {
-                // Mặc định 7 ngày gần nhất
-                ngay_ket_thuc = new Date();
-                ngay_bat_dau = new Date();
-                ngay_bat_dau.setDate(ngay_ket_thuc.getDate() - 6);
+                // Mặc định từ đầu tháng đến hiện tại - sử dụng cách tính tương tự như khoi_tao_date_picker
+                const hom_nay = new Date();
+                const nam = hom_nay.getFullYear();
+                const thang = hom_nay.getMonth() + 1; // +1 vì getMonth() trả về 0-11
+                const ngay = hom_nay.getDate();
+                
+                // Tạo string date để tránh vấn đề timezone
+                const tu_ngay_str = `${nam}-${thang.toString().padStart(2, '0')}-01`;
+                const den_ngay_str = `${nam}-${thang.toString().padStart(2, '0')}-${ngay.toString().padStart(2, '0')}`;
+                
+                ngay_bat_dau = new Date(tu_ngay_str + 'T00:00:00');
+                ngay_ket_thuc = new Date(den_ngay_str + 'T23:59:59');
             }
             
             // Lấy dữ liệu thật từ API
@@ -823,6 +873,7 @@
             const thu_data = [];
             const chi_data = [];
             const so_du_data = [];
+            const ngay_array = []; // Lưu các ngày để dùng cho tooltip
             
             const so_ngay = Math.ceil((ngay_ket_thuc - ngay_bat_dau) / (1000 * 60 * 60 * 24)) + 1;
             
@@ -831,11 +882,14 @@
                 ngay.setDate(ngay_bat_dau.getDate() + i);
                 const ngay_str = ngay.toISOString().split('T')[0];
                 
-                labels.push(ngay.toLocaleDateString('vi-VN', { 
-                    weekday: 'short', 
-                    day: 'numeric',
-                    month: 'short' 
-                }));
+                // Lưu ngày để dùng cho tooltip
+                ngay_array.push(new Date(ngay));
+                
+                // Format ngày tháng đơn giản: d/M (ví dụ: 1/8, 25/8)
+                // Chỉ hiển thị ngày/tháng trên trục X để tiết kiệm không gian
+                const ngay_so = ngay.getDate();
+                const thang_so = ngay.getMonth() + 1;
+                labels.push(`${ngay_so}/${thang_so}`);
                 
                 // Tính tổng thu/chi cho ngày này
                 let tong_thu = 0;
@@ -905,6 +959,19 @@
                         },
                         tooltip: {
                             callbacks: {
+                                title: function(context) {
+                                    // Hiển thị ngày đầy đủ trong tooltip title
+                                    const index = context[0].dataIndex;
+                                    if (ngay_array[index]) {
+                                        return ngay_array[index].toLocaleDateString('vi-VN', {
+                                            weekday: 'long',
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric'
+                                        });
+                                    }
+                                    return labels[index];
+                                },
                                 label: function(context) {
                                     return context.dataset.label + ': ' + dinh_dang_tien(context.parsed.y);
                                 }
@@ -966,23 +1033,46 @@
 
     /**
      * Khởi tạo giá trị mặc định cho date picker
+     * - Xu hướng thu chi: Từ ngày 1 của tháng hiện tại đến ngày hiện tại
+     * - Thống kê lương: Từ ngày 1 của tháng hiện tại đến ngày hiện tại
      */
     function khoi_tao_date_picker() {
-        const ngay_hien_tai = new Date();
-        const tu_ngay = new Date();
-        tu_ngay.setDate(ngay_hien_tai.getDate() - 6);
+        // Sử dụng local time để tránh vấn đề timezone
+        const hom_nay = new Date();
         
-        // Date picker cho xu hướng thu chi
-        document.getElementById('tu-ngay-xu-huong').value = tu_ngay.toISOString().split('T')[0];
-        document.getElementById('den-ngay-xu-huong').value = ngay_hien_tai.toISOString().split('T')[0];
+        // Tạo ngày đầu tháng bằng cách format string
+        const nam = hom_nay.getFullYear();
+        const thang = (hom_nay.getMonth() + 1).toString().padStart(2, '0'); // +1 vì getMonth() trả về 0-11
+        const ngay_hom_nay = hom_nay.getDate().toString().padStart(2, '0');
         
-        // Date picker cho thống kê lương (mặc định tuần này)
-        const dau_tuan = new Date();
-        const ngay_hien_tai_trong_tuan = dau_tuan.getDay() === 0 ? 6 : dau_tuan.getDay() - 1; // Thứ 2 = 0
-        dau_tuan.setDate(dau_tuan.getDate() - ngay_hien_tai_trong_tuan);
+        // Format YYYY-MM-DD
+        const tu_ngay_str = `${nam}-${thang}-01`; // Ngày 1 của tháng hiện tại
+        const den_ngay_str = `${nam}-${thang}-${ngay_hom_nay}`; // Ngày hiện tại
         
-        document.getElementById('tu-ngay-luong').value = dau_tuan.toISOString().split('T')[0];
-        document.getElementById('den-ngay-luong').value = ngay_hien_tai.toISOString().split('T')[0];
+        console.log('� Debug date calculation:', {
+            today: hom_nay.toLocaleDateString('vi-VN'),
+            year: nam,
+            month: thang,
+            day: ngay_hom_nay,
+            tu_ngay: tu_ngay_str,
+            den_ngay: den_ngay_str
+        });
+        
+        // Date picker cho xu hướng thu chi - từ đầu tháng đến hiện tại
+        const tuNgayXuHuong = document.getElementById('tu-ngay-xu-huong');
+        const denNgayXuHuong = document.getElementById('den-ngay-xu-huong');
+        
+        if (tuNgayXuHuong) tuNgayXuHuong.value = tu_ngay_str;
+        if (denNgayXuHuong) denNgayXuHuong.value = den_ngay_str;
+        
+        // Date picker cho thống kê lương - từ đầu tháng đến hiện tại
+        const tuNgayLuong = document.getElementById('tu-ngay-luong');
+        const denNgayLuong = document.getElementById('den-ngay-luong');
+        
+        if (tuNgayLuong) tuNgayLuong.value = tu_ngay_str;
+        if (denNgayLuong) denNgayLuong.value = den_ngay_str;
+        
+        console.log('Date picker setup completed: ' + tu_ngay_str + ' to ' + den_ngay_str);
     }
 
     /**

@@ -20,41 +20,41 @@
         
         // Apply iOS fixes when DOM is ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initIOSFixes);
+            document.addEventListener('DOMContentLoaded', khoi_tao_sua_loi_ios);
         } else {
-            initIOSFixes();
+            khoi_tao_sua_loi_ios();
         }
     }
     
     /**
-     * Initialize iOS specific fixes
+     * Khoi tao iOS specific fixes
      */
-    function initIOSFixes() {
+    function khoi_tao_sua_loi_ios() {
         // Fix viewport height issues
-        fixViewportHeight();
+        sua_chieu_cao_viewport();
         
         // Fix button touch behavior
-        fixButtonTouchBehavior();
+        sua_hanh_vi_cham_nut();
         
         // Fix bottom navigation
-        fixBottomNavigation();
+        sua_thanh_dieu_huong_duoi();
         
         // Fix form input focus issues
-        fixFormInputs();
+        sua_input_form();
         
         // Fix scroll issues
-        fixScrollIssues();
+        sua_van_de_cuon();
         
         // Handle orientation changes
-        handleOrientationChange();
+        xu_ly_thay_doi_huong();
         
         console.log('✅ iOS fixes applied successfully');
     }
     
     /**
-     * Fix viewport height issues on iOS Safari
+     * Sua chieu cao viewport tren iOS Safari
      */
-    function fixViewportHeight() {
+    function sua_chieu_cao_viewport() {
         // Set CSS custom property for actual viewport height
         function setVH() {
             const vh = window.innerHeight * 0.01;
@@ -69,9 +69,9 @@
     }
     
     /**
-     * Fix button touch behavior on iOS
+     * Sua hanh vi cham nut tren iOS
      */
-    function fixButtonTouchBehavior() {
+    function sua_hanh_vi_cham_nut() {
         // Add proper touch feedback for all buttons
         const buttons = document.querySelectorAll('button, .btn, input[type="submit"], input[type="button"]');
         
@@ -121,9 +121,9 @@
     }
     
     /**
-     * Fix bottom navigation for iOS
+     * Sua thanh dieu huong duoi cho iOS
      */
-    function fixBottomNavigation() {
+    function sua_thanh_dieu_huong_duoi() {
         const bottomNav = document.querySelector('.bottom-nav');
         if (!bottomNav) return;
         
@@ -149,9 +149,9 @@
     }
     
     /**
-     * Fix form input issues on iOS
+     * Sua input form tren iOS
      */
-    function fixFormInputs() {
+    function sua_input_form() {
         const inputs = document.querySelectorAll('input, textarea, select');
         
         inputs.forEach(input => {
@@ -180,43 +180,93 @@
     }
     
     /**
-     * Fix scroll issues on iOS
+     * Sua van de cuon tren iOS
      */
-    function fixScrollIssues() {
+    function sua_van_de_cuon() {
         // Fix momentum scrolling
         document.body.style.webkitOverflowScrolling = 'touch';
+        document.documentElement.style.webkitOverflowScrolling = 'touch';
         
-        // Prevent bounce scroll at the top and bottom
+        // Ensure body can scroll properly
+        document.body.style.overflowY = 'auto';
+        document.body.style.overflowX = 'hidden';
+        document.documentElement.style.overflowY = 'auto';
+        document.documentElement.style.overflowX = 'hidden';
+        
+        // Fix dashboard container scrolling
+        const dashboardContainer = document.querySelector('.dashboard-container');
+        if (dashboardContainer) {
+            dashboardContainer.style.webkitOverflowScrolling = 'touch';
+            dashboardContainer.style.touchAction = 'pan-y';
+        }
+        
+        // Allow scroll only at page level, prevent unwanted scroll blocks
         let lastY = 0;
+        let isScrolling = false;
         
         document.addEventListener('touchstart', function(e) {
             lastY = e.touches[0].clientY;
+            isScrolling = false;
         }, { passive: true });
         
         document.addEventListener('touchmove', function(e) {
-            const currentY = e.touches[0].clientY;
-            const isScrollingUp = currentY > lastY;
-            const isScrollingDown = currentY < lastY;
+            if (isScrolling) return;
             
-            // Prevent bounce at top
-            if (window.scrollY === 0 && isScrollingUp) {
-                e.preventDefault();
+            const currentY = e.touches[0].clientY;
+            const deltaY = currentY - lastY;
+            
+            // Check if we're scrolling within a scrollable element
+            let target = e.target;
+            let canScroll = false;
+            
+            while (target && target !== document) {
+                const style = window.getComputedStyle(target);
+                const overflowY = style.overflowY;
+                
+                if (overflowY === 'auto' || overflowY === 'scroll') {
+                    const scrollTop = target.scrollTop;
+                    const scrollHeight = target.scrollHeight;
+                    const clientHeight = target.clientHeight;
+                    
+                    // If element can still scroll, allow it
+                    if ((deltaY < 0 && scrollTop > 0) || 
+                        (deltaY > 0 && scrollTop < scrollHeight - clientHeight)) {
+                        canScroll = true;
+                        break;
+                    }
+                }
+                target = target.parentElement;
             }
             
-            // Prevent bounce at bottom
-            const isAtBottom = window.scrollY + window.innerHeight >= document.body.scrollHeight;
-            if (isAtBottom && isScrollingDown) {
-                e.preventDefault();
+            // For page-level scrolling
+            if (!canScroll) {
+                // Allow normal page scroll unless at boundaries
+                const isScrollingUp = deltaY > 0;
+                const isScrollingDown = deltaY < 0;
+                
+                // Only prevent if at absolute boundaries
+                if (window.scrollY === 0 && isScrollingUp) {
+                    // At top, prevent over-scroll
+                    if (deltaY > 50) e.preventDefault();
+                } else if (window.scrollY + window.innerHeight >= document.body.scrollHeight && isScrollingDown) {
+                    // At bottom, prevent over-scroll
+                    if (Math.abs(deltaY) > 50) e.preventDefault();
+                }
             }
             
             lastY = currentY;
+            isScrolling = true;
         }, { passive: false });
+        
+        document.addEventListener('touchend', function() {
+            isScrolling = false;
+        }, { passive: true });
     }
     
     /**
-     * Handle orientation changes
+     * Xu ly thay doi huong man hinh
      */
-    function handleOrientationChange() {
+    function xu_ly_thay_doi_huong() {
         window.addEventListener('orientationchange', function() {
             // Hide keyboard and refresh viewport after orientation change
             if (document.activeElement && document.activeElement.blur) {
@@ -225,7 +275,7 @@
             
             // Recalculate viewport after a delay
             setTimeout(() => {
-                fixViewportHeight();
+                sua_chieu_cao_viewport();
                 
                 // Trigger resize event for charts and other components
                 window.dispatchEvent(new Event('resize'));
@@ -234,9 +284,9 @@
     }
     
     /**
-     * Prevent double-tap zoom
+     * Ngan zoom khi cham doi
      */
-    function preventDoubleTabZoom() {
+    function ngan_zoom_cham_doi() {
         let lastTouchEnd = 0;
         document.addEventListener('touchend', function(event) {
             const now = (new Date()).getTime();
@@ -248,12 +298,12 @@
     }
     
     // Initialize double-tap prevention
-    preventDoubleTabZoom();
+    ngan_zoom_cham_doi();
     
     /**
-     * Fix PWA behavior on iOS
+     * Sua hanh vi PWA tren iOS
      */
-    function fixPWABehavior() {
+    function sua_hanh_vi_pwa() {
         // Detect if running as PWA
         const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
                      window.navigator.standalone === true;
@@ -280,14 +330,14 @@
     }
     
     // Initialize PWA fixes
-    fixPWABehavior();
+    sua_hanh_vi_pwa();
     
     // Expose utilities globally
     window.iOSFixes = {
         isIOS: isIOS,
         isSafari: isSafari,
-        fixViewportHeight: fixViewportHeight,
-        refreshFixes: initIOSFixes
+        sua_chieu_cao_viewport: sua_chieu_cao_viewport,
+        lam_moi_sua_loi: khoi_tao_sua_loi_ios
     };
     
 })();

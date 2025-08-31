@@ -30,12 +30,99 @@
     max-width: 0;
 }
 
+/* CSS cho bộ lọc bài tập đẹp */
+.filter-stats {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.filter-stats:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.form-floating {
+    position: relative;
+}
+
+.form-floating > .form-select {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.form-floating > .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-floating > .form-select.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.form-floating > .form-select.loading::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0d6efd;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+.form-floating > label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+}
+
+/* Animation cho thống kê */
+.filter-stats .badge {
+    transition: all 0.3s ease;
+}
+
+.filter-stats .badge:hover {
+    transform: scale(1.1);
+}
+
 @media (max-width: 768px) {
     .table th,
     .table td {
         padding: 0.25rem 0.1rem !important;
         font-size: 0.65rem !important;
         line-height: 1.1;
+    }
+    
+    /* Compact filter on mobile */
+    .form-floating > label {
+        font-size: 0.75rem;
+    }
+    
+    .form-floating > .form-select {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .filter-stats {
+        padding: 0.75rem !important;
     }
     
     /* Bảng lịch học - 8 cột (Giờ + 7 ngày) */
@@ -59,6 +146,16 @@
     .table td {
         padding: 0.2rem 0.05rem !important;
         font-size: 0.6rem !important;
+    }
+    
+    /* Mobile specific for filters */
+    .form-floating > .form-select {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .form-floating > label {
+        font-size: 0.7rem;
     }
 }
 </style>
@@ -153,80 +250,88 @@
                 </button>
             </div>
 
-            <!-- Bộ lọc bài tập -->
-            <div class="card mb-3">
-                <div class="card-body">
-                    <!-- Thống kê nhanh -->
+            <!-- Bộ lọc bài tập - Thiết kế compact -->
+            <div class="card mb-3 shadow-sm">
+                <div class="card-body p-3">
+                    <!-- Thống kê nhanh - compact -->
                     <div class="row mb-3" id="thong-ke-bai-tap">
                         <div class="col-3">
-                            <div class="text-center">
-                                <h6 class="text-muted mb-1">Tổng</h6>
-                                <span class="badge bg-primary fs-6" id="tong-bai-tap">0</span>
+                            <div class="text-center p-2 filter-stats">
+                                <small class="text-muted d-block mb-1">Tổng</small>
+                                <span class="badge bg-primary" id="tong-bai-tap">0</span>
                             </div>
                         </div>
                         <div class="col-3">
-                            <div class="text-center">
-                                <h6 class="text-muted mb-1">Chưa làm</h6>
-                                <span class="badge bg-secondary fs-6" id="chua-lam-count">0</span>
+                            <div class="text-center p-2 filter-stats">
+                                <small class="text-muted d-block mb-1">Chưa làm</small>
+                                <span class="badge bg-secondary" id="chua-lam-count">0</span>
                             </div>
                         </div>
                         <div class="col-3">
-                            <div class="text-center">
-                                <h6 class="text-muted mb-1">Đang làm</h6>
-                                <span class="badge bg-warning fs-6" id="dang-lam-count">0</span>
+                            <div class="text-center p-2 filter-stats">
+                                <small class="text-muted d-block mb-1">Đang làm</small>
+                                <span class="badge bg-warning" id="dang-lam-count">0</span>
                             </div>
                         </div>
                         <div class="col-3">
-                            <div class="text-center">
-                                <h6 class="text-muted mb-1">Hoàn thành</h6>
-                                <span class="badge bg-success fs-6" id="hoan-thanh-count">0</span>
+                            <div class="text-center p-2 filter-stats">
+                                <small class="text-muted d-block mb-1">Hoàn thành</small>
+                                <span class="badge bg-success" id="hoan-thanh-count">0</span>
                             </div>
                         </div>
                     </div>
-                    <hr>
                     
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Trạng thái</label>
-                            <select class="form-select form-select-sm" id="loc-trang-thai" onchange="ap_dung_bo_loc_bai_tap()">
-                                <option value="">Tất cả</option>
-                                <option value="chua-lam">Chưa làm</option>
-                                <option value="dang-lam">Đang làm</option>
-                                <option value="hoan-thanh">Hoàn thành</option>
-                            </select>
+                    <!-- Bộ lọc compact -->
+                    <div class="row g-2">
+                        <div class="col-6 col-md-3">
+                            <div class="form-floating">
+                                <select class="form-select form-select-sm" id="loc-trang-thai" onchange="ap_dung_bo_loc_bai_tap()">
+                                    <option value="">Tất cả</option>
+                                    <option value="chua-lam">Chưa làm</option>
+                                    <option value="dang-lam">Đang làm</option>
+                                    <option value="hoan-thanh">Hoàn thành</option>
+                                </select>
+                                <label for="loc-trang-thai"><i class="fas fa-tasks me-1"></i>Trạng thái</label>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Mức độ ưu tiên</label>
-                            <select class="form-select form-select-sm" id="loc-uu-tien" onchange="ap_dung_bo_loc_bai_tap()">
-                                <option value="">Tất cả</option>
-                                <option value="cao">Cao</option>
-                                <option value="trung-binh">Trung bình</option>
-                                <option value="thap">Thấp</option>
-                            </select>
+                        <div class="col-6 col-md-3">
+                            <div class="form-floating">
+                                <select class="form-select form-select-sm" id="loc-uu-tien" onchange="ap_dung_bo_loc_bai_tap()">
+                                    <option value="">Tất cả</option>
+                                    <option value="cao">Cao</option>
+                                    <option value="trung-binh">Trung bình</option>
+                                    <option value="thap">Thấp</option>
+                                </select>
+                                <label for="loc-uu-tien"><i class="fas fa-exclamation-triangle me-1"></i>Ưu tiên</label>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Môn học</label>
-                            <select class="form-select form-select-sm" id="loc-mon-hoc" onchange="ap_dung_bo_loc_bai_tap()">
-                                <option value="">Tất cả</option>
-                            </select>
+                        <div class="col-6 col-md-3">
+                            <div class="form-floating">
+                                <select class="form-select form-select-sm" id="loc-mon-hoc" onchange="ap_dung_bo_loc_bai_tap()">
+                                    <option value="">Tất cả</option>
+                                </select>
+                                <label for="loc-mon-hoc"><i class="fas fa-book me-1"></i>Môn học</label>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Hạn nộp</label>
-                            <select class="form-select form-select-sm" id="loc-han-nop" onchange="ap_dung_bo_loc_bai_tap()">
-                                <option value="">Tất cả</option>
-                                <option value="qua-han">Quá hạn</option>
-                                <option value="hom-nay">Hôm nay</option>
-                                <option value="tuan-nay">Tuần này</option>
-                                <option value="thang-nay">Tháng này</option>
-                            </select>
+                        <div class="col-6 col-md-3">
+                            <div class="form-floating">
+                                <select class="form-select form-select-sm" id="loc-han-nop" onchange="ap_dung_bo_loc_bai_tap()">
+                                    <option value="">Tất cả</option>
+                                    <option value="qua-han">Quá hạn</option>
+                                    <option value="hom-nay">Hôm nay</option>
+                                    <option value="tuan-nay">Tuần này</option>
+                                    <option value="thang-nay">Tháng này</option>
+                                </select>
+                                <label for="loc-han-nop"><i class="fas fa-calendar me-1"></i>Hạn nộp</label>
+                            </div>
                         </div>
                     </div>
-                    <div class="row mt-2">
-                        <div class="col-12">
-                            <button class="btn btn-outline-secondary btn-sm" onclick="xoa_bo_loc_bai_tap()">
-                                <i class="fas fa-times me-1"></i>Xóa bộ lọc
-                            </button>
-                        </div>
+                    
+                    <!-- Nút reset -->
+                    <div class="text-center mt-3">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="xoa_bo_loc_bai_tap()">
+                            <i class="fas fa-refresh me-1"></i>Đặt lại bộ lọc
+                        </button>
                     </div>
                 </div>
             </div>
@@ -531,6 +636,9 @@
         // Tự động kích hoạt tab đầu tiên
         auto_activate_first_tab();
         
+        // Khởi tạo filter enhancement
+        khoi_tao_filter_enhancement();
+        
         tai_danh_sach_mon_hoc();
         tai_danh_sach_bai_tap();
         tao_bang_lich_hoc();
@@ -548,6 +656,48 @@
             tai_lich_hoc();
         }, 1000);
     });
+
+    /**
+     * Khởi tạo các hiệu ứng cho bộ lọc
+     */
+    function khoi_tao_filter_enhancement() {
+        // Thêm tooltip cho các filter stats
+        const filterStats = document.querySelectorAll('.filter-stats');
+        filterStats.forEach(stat => {
+            const badgeText = stat.querySelector('small').textContent;
+            stat.setAttribute('title', `Click để lọc theo ${badgeText.toLowerCase()}`);
+            stat.style.cursor = 'pointer';
+            
+            // Thêm sự kiện click để lọc nhanh
+            stat.addEventListener('click', function() {
+                const text = badgeText.toLowerCase();
+                if (text.includes('chưa làm')) {
+                    document.getElementById('loc-trang-thai').value = 'chua-lam';
+                } else if (text.includes('đang làm')) {
+                    document.getElementById('loc-trang-thai').value = 'dang-lam';
+                } else if (text.includes('hoàn thành')) {
+                    document.getElementById('loc-trang-thai').value = 'hoan-thanh';
+                } else {
+                    document.getElementById('loc-trang-thai').value = '';
+                }
+                ap_dung_bo_loc_bai_tap();
+            });
+        });
+        
+        // Thêm loading animation cho các select
+        const selects = document.querySelectorAll('#bai-tap .form-select');
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                // Thêm class loading
+                this.classList.add('loading');
+                
+                // Xóa class loading sau 300ms
+                setTimeout(() => {
+                    this.classList.remove('loading');
+                }, 300);
+            });
+        });
+    }
 
     async function tai_danh_sach_mon_hoc() {
         try {
