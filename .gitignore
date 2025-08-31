@@ -60,8 +60,8 @@ test_*.py
 *_test.html
 *_test.py
 
-# Database files
-*.db
+# Database files (development)
+# *.db (bỏ comment nếu muốn ignore database)
 *.sqlite
 *.sqlite3
 
@@ -71,8 +71,9 @@ test_*.py
 *_backup.py
 *_old.*
 
-# Migration files
+# Migration files (đã hoàn thành migration)
 migrate_to_*.py
+database_config.py
 
 # Deployment specific files
 *.sh
