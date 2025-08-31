@@ -3,7 +3,10 @@
 SQLAlchemy Models cho ứng dụng Quản lý Cá nhân
 """
 from datetime import datetime
-from database_config import db
+from flask_sqlalchemy import SQLAlchemy
+
+# Khởi tạo SQLAlchemy instance
+db = SQLAlchemy()
 
 # ================================
 # USER MANAGEMENT MODELS

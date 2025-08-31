@@ -11,21 +11,53 @@ from flask import Flask, request, jsonify, render_template, session, redirect, u
 from datetime import datetime, timedelta, date
 from flask_cors import CORS
 from functools import wraps
+from dotenv import load_dotenv
 
-# Import database config và models
-from database_config import init_database, db, test_connection
-from models import *
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Cấu hình session
+# Cấu hình Flask
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'quan-ly-ca-nhan-secret-key-2024')
 app.config['SESSION_PERMANENT'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 
-# Khởi tạo database
-database = init_database(app)
+# Cấu hình SQLite database
+database_path = os.getenv('SQLITE_DB_PATH', 'quan_ly_ca_nhan.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{database_path}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+    'connect_args': {
+        'check_same_thread': False,
+        'timeout': 20
+    }
+}
+
+# Import models và khởi tạo database
+from models import db
+from models import *
+
+# Khởi tạo database với app
+db.init_app(app)
+
+# Test connection và tạo tables
+def test_connection():
+    """
+    Kiểm tra kết nối database và tạo tables
+    """
+    try:
+        # Tạo tất cả bảng nếu chưa tồn tại
+        with app.app_context():
+            db.create_all()
+        print("✅ Kết nối database SQLite thành công và đã tạo tables!")
+        return True
+    except Exception as e:
+        print(f"❌ Lỗi kết nối database: {e}")
+        return False
 
 # Kiểm tra kết nối database
 with app.app_context():
