@@ -65,6 +65,9 @@ test_*.py
 *.sqlite
 *.sqlite3
 
+# Flask instance folder
+instance/
+
 # Backup files
 *.bak
 *.backup
